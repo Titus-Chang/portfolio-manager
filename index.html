@@ -39,16 +39,19 @@
 
         header {
             margin-bottom: 4rem;
-            max-width: 800px;
         }
 
         h1 {
-            font-size: 3.5rem;
+            /* 字級跟著視窗縮放，標題才不會在中等寬度被迫斷行 */
+            font-size: clamp(2.25rem, 3.6vw, 3.5rem);
             font-weight: 600;
             letter-spacing: -0.03em;
             margin-bottom: 1rem;
+            max-width: 1150px;
+            text-wrap: balance;   /* 真的需要換行時平均分配，不要只掉一個字下去 */
             background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -56,6 +59,7 @@
             font-size: 1.25rem;
             color: var(--text-secondary);
             font-weight: 400;
+            max-width: 800px;   /* 內文維持原本的閱讀寬度 */
         }
 
         .filters {
@@ -277,7 +281,6 @@
         .card:nth-child(10) { animation-delay: 0.50s; }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
             .grid { grid-template-columns: 1fr; }
             .card { padding: 1.5rem; }
             .card-media { margin: -1.5rem -1.5rem 1.25rem; }
