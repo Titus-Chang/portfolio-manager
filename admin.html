@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects Admin | Portfolio Manager</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #020617;
+            --surface-color: #0f172a;
+            --surface-hover: #1e293b;
+            --surface-alt: #0b1120;
+            --border-color: rgba(56, 189, 248, 0.15);
+            --border-hover: rgba(56, 189, 248, 0.6);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --tag-bg: rgba(14, 165, 233, 0.15);
+            --tag-text: #7dd3fc;
+            --accent: #0ea5e9;
+            --accent-light: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #22c55e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.5); }
+
+        /* Custom focus */
+        *:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Transitions */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+        .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
+        .slide-enter-from { transform: translateX(30px); opacity: 0; }
+        .slide-leave-to { transform: translateX(-30px); opacity: 0; }
+
+        /* ===== Cover Image ===== */
+        .dropzone {
+            position: relative;
+            border: 1px dashed rgba(56, 189, 248, 0.35);
+            border-radius: 12px;
+            background: var(--surface-color);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .dropzone:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+        .dropzone.is-dragging {
+            border-color: var(--accent-light);
+            background: rgba(14, 165, 233, 0.08);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+        }
+        .dropzone.has-image { border-style: solid; border-color: var(--border-color); cursor: default; }
+
+        .img-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--surface-alt);
+            overflow: hidden;
+        }
+        .img-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* 上傳中的掃描動畫 */
+        .img-busy {
+            position: absolute; inset: 0;
+            background: rgba(2, 6, 23, 0.75);
+            display: grid; place-items: center;
+            color: var(--tag-text); font-size: 0.8rem;
+            z-index: 3;
+        }
+        .img-busy .bar {
+            width: 120px; height: 3px; margin-top: 0.6rem;
+            background: rgba(56, 189, 248, 0.2); border-radius: 2px; overflow: hidden;
+        }
+        .img-busy .bar::after {
+            content: ''; display: block; width: 40%; height: 100%;
+            background: var(--accent-light);
+            animation: scan 0.9s ease-in-out infinite;
+        }
+        @keyframes scan {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(250%); }
+        }
+
+        .img-actions {
+            position: absolute; top: 0.6rem; right: 0.6rem;
+            display: flex; gap: 0.4rem; z-index: 2;
+        }
+        .img-btn {
+            background: rgba(2, 6, 23, 0.8);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.7rem; padding: 0.28rem 0.6rem;
+            border-radius: 6px; cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: all 0.18s ease;
+        }
+        .img-btn:hover { color: var(--text-primary); border-color: var(--border-hover); }
+        .img-btn.danger:hover { color: #f87171; border-color: rgba(239, 68, 68, 0.6); background: rgba(239, 68, 68, 0.15); }
+
+        /* 側欄清單縮圖 */
+        .thumb {
+            width: 56px; height: 42px; flex: none;
+            border-radius: 6px; overflow: hidden;
+            background: var(--surface-alt);
+            border: 1px solid var(--border-color);
+        }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* 儲存空間量表 */
+        .gauge {
+            width: 46px; height: 4px; border-radius: 2px;
+            background: rgba(148, 163, 184, 0.2);
+            overflow: hidden;
+        }
+        .gauge > i { display: block; height: 100%; border-radius: 2px; transition: width 0.3s ease, background 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Top Navigation -->
+        <nav style="background: var(--surface-color); border-bottom: 1px solid var(--border-color); backdrop-filter: blur(12px);"
+             class="px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <div style="background: linear-gradient(135deg, #0ea5e9, #38bdf8); width:36px; height:36px;"
+                     class="rounded-lg flex items-center justify-center font-bold text-white text-sm">P</div>
+                <div>
+                    <h1 class="text-lg font-semibold" style="color: var(--text-primary);">Projects Manager</h1>
+                    <p class="text-xs" style="color: var(--text-secondary);">Portfolio Admin Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs px-3 py-1 rounded-full"
+                      style="background: var(--tag-bg); color: var(--tag-text); border: 1px solid rgba(56,189,248,0.2);">
+                    {{ projects.length }} Projects
+                </span>
+                <!-- localStorage 用量：內嵌圖片會快速吃掉配額，必須讓使用者看得到 -->
+                <span class="text-xs px-3 py-1 rounded-full flex items-center gap-2"
+                      :title="'localStorage 已使用 ' + storageLabel + ' / 約 5 MB 上限' + (imageCount ? '（' + imageCount + ' 張內嵌圖片）' : '')"
+                      :style="'background: var(--surface-hover); border: 1px solid ' + (storageRatio > 0.8 ? 'rgba(251,191,36,0.5)' : 'var(--border-color)') + '; color:' + (storageRatio > 0.8 ? 'var(--warn-text, #fde68a)' : 'var(--text-secondary)')">
+                    <span class="gauge">
+                        <i :style="'width:' + Math.min(100, storageRatio * 100) + '%; background:' + (storageRatio > 0.8 ? '#fbbf24' : 'var(--accent-light)')"></i>
+                    </span>
+                    {{ storageLabel }}
+                </span>
+                <button @click="showCategoryModal = true"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                        style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);"
+                        title="新增 / 刪除 / 重新命名分類"
+                        onmouseover="this.style.borderColor='rgba(56,189,248,0.6)';this.style.color='#f8fafc'"
+                        onmouseout="this.style.borderColor='rgba(56,189,248,0.15)';this.style.color='#94a3b8'">
+                    &#9635; Categories
+                    <span class="text-xs px-1.5 rounded"
+                          :style="'background: var(--tag-bg); color: var(--tag-text);' + (orphanCategories.length ? 'background: rgba(251,191,36,0.2); color: #fde68a;' : '')">
+                        {{ categories.length }}<span v-if="orphanCategories.length"> +{{ orphanCategories.length }}!</span>
+                    </span>
+                </button>
+                <button @click="importJSON"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                        style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);"
+                        onmouseover="this.style.borderColor='rgba(56,189,248,0.6)';this.style.color='#f8fafc'"
+                        onmouseout="this.style.borderColor='rgba(56,189,248,0.15)';this.style.color='#94a3b8'">
+                    &#8593; Import JSON
+                </button>
+                <button @click="exportJSON"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                        style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);"
+                        title="給 HTTP 供應用的 projects.json"
+                        onmouseover="this.style.borderColor='rgba(56,189,248,0.6)';this.style.color='#f8fafc'"
+                        onmouseout="this.style.borderColor='rgba(56,189,248,0.15)';this.style.color='#94a3b8'">
+                    &#8595; Export JSON
+                </button>
+                <!-- projects.js 走 <script src>，讓 index.html 雙擊 file:// 就能看 -->
+                <button @click="exportJS"
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                        style="background: var(--accent); color: #fff; border: 1px solid var(--accent);"
+                        title="產生 projects.js — index.html 雙擊即可直接顯示，不需伺服器"
+                        onmouseover="this.style.boxShadow='0 0 20px rgba(14,165,233,0.4)'"
+                        onmouseout="this.style.boxShadow='none'">
+                    &#8595; Export JS
+                </button>
+            </div>
+        </nav>
+        <input type="file" ref="fileInput" accept=".json" @change="handleFileImport" style="display:none">
+        <input type="file" ref="imageInput" accept="image/*" @change="handleImageSelect" style="display:none">
+
+        <div class="flex" style="min-height: calc(100vh - 73px);">
+            <!-- Sidebar: Project List -->
+            <aside style="width: 420px; background: var(--surface-alt); border-right: 1px solid var(--border-color);"
+                   class="flex flex-col flex-shrink-0">
+                <!-- Sidebar Header -->
+                <div class="p-4 flex items-center justify-between"
+                     style="border-bottom: 1px solid var(--border-color);">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm font-semibold" style="color: var(--text-primary);">Project List</h2>
+                    </div>
+                    <button @click="addProject"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1"
+                            style="background: var(--accent); color: #fff;"
+                            onmouseover="this.style.boxShadow='0 0 15px rgba(14,165,233,0.4)'"
+                            onmouseout="this.style.boxShadow='none'">
+                        <span class="text-lg leading-none">+</span> New
+                    </button>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="p-3 flex gap-2 flex-wrap" style="border-bottom: 1px solid var(--border-color);">
+                    <button v-for="f in filterOptions" :key="f.value"
+                            @click="activeFilter = f.value"
+                            class="px-3 py-1 rounded text-xs font-medium transition-all duration-200 cursor-pointer"
+                            :style="activeFilter === f.value
+                                ? 'background: #0ea5e9; color: #fff; border: 1px solid #0ea5e9; box-shadow: 0 0 12px rgba(14,165,233,0.3);'
+                                : 'background: var(--surface-color); color: var(--text-secondary); border: 1px solid var(--border-color);'">
+                        {{ f.label }}
+                    </button>
+                </div>
+
+                <!-- Project Items -->
+                <div class="flex-1 overflow-y-auto p-3" style="scrollbar-gutter: stable;">
+                    <div v-if="filteredProjects.length === 0"
+                         class="text-center py-12">
+                        <div class="text-4xl mb-3" style="opacity:0.3;">&#9744;</div>
+                        <p class="text-sm" style="color: var(--text-secondary);">No projects found</p>
+                        <button @click="addProject"
+                                class="mt-3 text-sm underline"
+                                style="color: var(--accent-light);">
+                            Create your first project
+                        </button>
+                    </div>
+                    <div v-for="(project, index) in filteredProjects" :key="project._id"
+                         @click="selectProject(project)"
+                         class="mb-2 p-4 rounded-xl cursor-pointer transition-all duration-200"
+                         :style="selectedProject && selectedProject._id === project._id
+                             ? 'background: var(--surface-hover); border: 1px solid var(--border-hover); box-shadow: 0 0 15px rgba(56,189,248,0.08);'
+                             : 'background: var(--surface-color); border: 1px solid var(--border-color);'"
+                         onmouseover="if(!this.style.boxShadow || this.style.boxShadow==='none') this.style.borderColor='rgba(56,189,248,0.4)'"
+                         onmouseout="if(!this.classList.contains('selected')) this.style.borderColor='rgba(56,189,248,0.15)'">
+                        <!-- Card Preview -->
+                        <div class="flex items-start justify-between mb-2">
+                            <div v-if="project.image" class="thumb mr-3">
+                                <img :src="project.image" :alt="project.title" @error="$event.target.style.display='none'">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs px-2 py-0.5 rounded font-medium"
+                                          :style="getCategoryStyle(project.category)">
+                                        {{ getCategoryLabel(project.category) }}
+                                    </span>
+                                </div>
+                                <h3 class="text-sm font-semibold truncate" style="color: var(--text-primary);">
+                                    {{ project.title || 'Untitled Project' }}
+                                </h3>
+                            </div>
+                            <div class="text-right ml-3 flex-shrink-0">
+                                <div class="text-lg font-bold" style="color: var(--accent-light); text-shadow: 0 0 15px rgba(56,189,248,0.3);">
+                                    {{ project.metric || '--' }}
+                                </div>
+                                <div class="text-xs" style="color: var(--text-secondary);">{{ project.metricLabel || '' }}</div>
+                            </div>
+                        </div>
+                        <p class="text-xs mb-2 line-clamp-2" style="color: var(--text-secondary); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                            {{ project.desc || 'No description' }}
+                        </p>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span v-for="tag in (project.tags || []).slice(0, 3)" :key="tag"
+                                  class="text-xs px-2 py-0.5 rounded"
+                                  style="background: var(--tag-bg); color: var(--tag-text); border: 1px solid rgba(56,189,248,0.2);">
+                                {{ tag }}
+                            </span>
+                            <span v-if="(project.tags || []).length > 3"
+                                  class="text-xs" style="color: var(--text-secondary);">
+                                +{{ project.tags.length - 3 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content: Editor / Preview -->
+            <main class="flex-1 overflow-y-auto">
+                <!-- No Selection State -->
+                <div v-if="!selectedProject"
+                     class="flex flex-col items-center justify-center h-full"
+                     style="color: var(--text-secondary);">
+                    <div class="text-6xl mb-4" style="opacity: 0.15;">&#9878;</div>
+                    <p class="text-lg font-medium mb-1">Select a project to edit</p>
+                    <p class="text-sm">or create a new one from the sidebar</p>
+                </div>
+
+                <!-- Editor -->
+                <div v-else class="p-8 max-w-4xl mx-auto">
+                    <!-- Editor Header -->
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold"
+                                style="background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                {{ editForm.title || 'Untitled Project' }}
+                            </h2>
+                            <p class="text-sm mt-1" style="color: var(--text-secondary);">
+                                Editing Project
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="duplicateProject(selectedProject)"
+                                    class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                                    style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);"
+                                    onmouseover="this.style.borderColor='rgba(56,189,248,0.6)';this.style.color='#f8fafc'"
+                                    onmouseout="this.style.borderColor='rgba(56,189,248,0.15)';this.style.color='#94a3b8'"
+                                    title="Duplicate">
+                                &#10697; Duplicate
+                            </button>
+                            <button @click="confirmDelete(selectedProject)"
+                                    class="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                                    style="background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3);"
+                                    onmouseover="this.style.background='rgba(239,68,68,0.2)';this.style.borderColor='rgba(239,68,68,0.6)'"
+                                    onmouseout="this.style.background='rgba(239,68,68,0.1)';this.style.borderColor='rgba(239,68,68,0.3)'"
+                                    title="Delete">
+                                &#10005; Delete
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Two Column Layout -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Left Column: Form -->
+                        <div class="space-y-5">
+                            <h3 class="text-sm font-semibold uppercase tracking-wider mb-4"
+                                style="color: var(--accent-light);">Project Details</h3>
+
+                            <!-- Cover Image -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-medium uppercase tracking-wider"
+                                           style="color: var(--text-secondary);">
+                                        Cover Image <span style="opacity:0.55; text-transform:none;">（選填）</span>
+                                    </label>
+                                    <span v-if="imageInfo" class="text-xs" style="color: var(--text-dim, #64748b);">
+                                        {{ imageInfo }}
+                                    </span>
+                                </div>
+
+                                <!-- 拖放 / 點擊上傳；已有圖片時顯示預覽 -->
+                                <div class="dropzone"
+                                     :class="{ 'is-dragging': isDraggingImage, 'has-image': !!editForm.image }"
+                                     @click="!editForm.image && !imageBusy && pickImage()"
+                                     @dragover.prevent="isDraggingImage = true"
+                                     @dragenter.prevent="isDraggingImage = true"
+                                     @dragleave.prevent="isDraggingImage = false"
+                                     @drop.prevent="handleImageDrop">
+
+                                    <div v-if="editForm.image" class="img-frame">
+                                        <img :src="editForm.image" alt="Cover preview"
+                                             @error="imageLoadError = true">
+                                        <div class="img-actions">
+                                            <button class="img-btn" @click.stop="pickImage" title="更換圖片">&#8635; Replace</button>
+                                            <button class="img-btn danger" @click.stop="removeImage" title="移除圖片">&times; Remove</button>
+                                        </div>
+                                        <div v-if="imageBusy" class="img-busy">
+                                            <div class="text-center">
+                                                <div>Processing…</div>
+                                                <div class="bar"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div v-else class="px-4 py-8 text-center">
+                                        <div v-if="imageBusy">
+                                            <div class="text-sm" style="color: var(--tag-text);">Processing…</div>
+                                            <div style="width:120px;height:3px;margin:0.6rem auto 0;background:rgba(56,189,248,0.2);border-radius:2px;overflow:hidden;">
+                                                <div style="width:40%;height:100%;background:var(--accent-light);animation:scan 0.9s ease-in-out infinite;"></div>
+                                            </div>
+                                        </div>
+                                        <div v-else>
+                                            <div class="text-3xl mb-2" style="opacity:0.35;">&#128444;</div>
+                                            <p class="text-sm" style="color: var(--text-secondary);">
+                                                拖放圖片、<span style="color: var(--accent-light);">點擊選檔</span>，或直接 <kbd style="font-family:inherit;">Ctrl</kbd>+<kbd style="font-family:inherit;">V</kbd> 貼上
+                                            </p>
+                                            <p class="text-xs mt-1" style="color: var(--text-secondary); opacity:0.7;">
+                                                自動壓縮至 {{ MAX_EDGE }}px / JPEG，內嵌進 JSON
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 或直接填網址 / 相對路徑（base64 內嵌時不顯示那串字） -->
+                                <div class="flex gap-2 mt-2">
+                                    <input v-model="imageUrlField" type="text"
+                                           :placeholder="isDataImage ? '已內嵌 base64 — 在此輸入網址可改為外部連結' : '或貼上圖片網址 / 相對路徑 images/cover.jpg'"
+                                           class="flex-1 px-3 py-2 rounded-lg text-xs transition-all duration-200"
+                                           style="background: var(--surface-color); color: var(--text-secondary); border: 1px solid var(--border-color);"
+                                           onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                           onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                                </div>
+                                <p v-if="imageLoadError" class="text-xs mt-1.5" style="color: #f87171;">
+                                    這個路徑載入不到圖片 — 相對路徑需以 HTTP 供應，且檔案要放在 admin.html 同層。
+                                </p>
+                                <p v-else-if="isDataImage" class="text-xs mt-1.5" style="color: var(--text-secondary); opacity:0.7;">
+                                    已內嵌於 JSON（base64）— 匯出後單一檔案即可帶著走，不需另外搬圖片。
+                                </p>
+                            </div>
+
+                            <!-- Category -->
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                       style="color: var(--text-secondary);">Category</label>
+                                <select v-model="editForm.category"
+                                        class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                        style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); appearance: auto;"
+                                        onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                        onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                                    <option v-for="c in categories" :key="c.value" :value="c.value">
+                                        {{ c.label }}
+                                    </option>
+                                    <!-- 匯入的舊資料可能帶著清單裡沒有的分類，保留住才不會被靜靜改掉 -->
+                                    <option v-if="editForm.category && !categoryMap[editForm.category]"
+                                            :value="editForm.category">
+                                        {{ editForm.category }}（未定義）
+                                    </option>
+                                </select>
+                                <button @click="showCategoryModal = true"
+                                        class="mt-1.5 text-xs underline"
+                                        style="color: var(--accent-light);">
+                                    管理分類…
+                                </button>
+                            </div>
+
+                            <!-- Title -->
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                       style="color: var(--text-secondary);">Title</label>
+                                <input v-model="editForm.title" type="text" placeholder="Project title..."
+                                       class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                       style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                       onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                       onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                            </div>
+
+                            <!-- Metric + MetricLabel Row -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                           style="color: var(--text-secondary);">Metric</label>
+                                    <input v-model="editForm.metric" type="text" placeholder="-85%"
+                                           class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                           style="background: var(--surface-color); color: var(--accent-light); border: 1px solid var(--border-color); font-weight: 600; font-size: 1.1rem;"
+                                           onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                           onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                           style="color: var(--text-secondary);">Metric Label</label>
+                                    <input v-model="editForm.metricLabel" type="text" placeholder="Manual Workload"
+                                           class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                           style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                           onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                           onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                                </div>
+                            </div>
+
+                            <!-- Link -->
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                       style="color: var(--text-secondary);">Link URL</label>
+                                <input v-model="editForm.link" type="url" placeholder="https://..."
+                                       class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200"
+                                       style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                       onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                       onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                       style="color: var(--text-secondary);">Description</label>
+                                <textarea v-model="editForm.desc" rows="4" placeholder="Describe your project..."
+                                          class="w-full px-4 py-2.5 rounded-lg text-sm transition-all duration-200 resize-y"
+                                          style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); min-height: 100px;"
+                                          onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                          onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'"></textarea>
+                            </div>
+
+                            <!-- Tags -->
+                            <div>
+                                <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                                       style="color: var(--text-secondary);">Tags</label>
+                                <div class="flex flex-wrap gap-2 mb-2">
+                                    <span v-for="(tag, i) in editForm.tags" :key="i"
+                                          class="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-all duration-200"
+                                          style="background: var(--tag-bg); color: var(--tag-text); border: 1px solid rgba(56,189,248,0.2);">
+                                        {{ tag }}
+                                        <button @click="removeTag(i)"
+                                                class="ml-1 hover:text-red-400 transition-colors cursor-pointer"
+                                                style="color: var(--tag-text); line-height: 1; font-size: 14px;">
+                                            &times;
+                                        </button>
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <input v-model="newTag" type="text" placeholder="Add a tag..."
+                                           @keyup.enter="addTag"
+                                           class="flex-1 px-4 py-2 rounded-lg text-sm transition-all duration-200"
+                                           style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);"
+                                           onfocus="this.style.borderColor='rgba(56,189,248,0.6)';this.style.boxShadow='0 0 0 3px rgba(14,165,233,0.1)'"
+                                           onblur="this.style.borderColor='rgba(56,189,248,0.15)';this.style.boxShadow='none'">
+                                    <button @click="addTag"
+                                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                                            style="background: var(--surface-hover); color: var(--accent-light); border: 1px solid var(--border-color);"
+                                            onmouseover="this.style.borderColor='rgba(56,189,248,0.6)'"
+                                            onmouseout="this.style.borderColor='rgba(56,189,248,0.15)'">
+                                        + Add
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="pt-2">
+                                <button @click="saveProject"
+                                        class="w-full py-3 rounded-xl text-sm font-semibold transition-all duration-200"
+                                        style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; border: none;"
+                                        onmouseover="this.style.boxShadow='0 0 30px rgba(14,165,233,0.4)';this.style.transform='translateY(-1px)'"
+                                        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+                                    Save Changes
+                                </button>
+                                <p v-if="saveMessage"
+                                   class="text-xs text-center mt-2 transition-all"
+                                   :style="'color:' + (saveMessage.includes('Error') ? 'var(--danger)' : 'var(--success)')">
+                                    {{ saveMessage }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Live Preview -->
+                        <div>
+                            <h3 class="text-sm font-semibold uppercase tracking-wider mb-4"
+                                style="color: var(--accent-light);">Live Preview</h3>
+                            <div class="rounded-2xl transition-all duration-300 overflow-hidden"
+                                 style="background: var(--surface-color); border: 1px solid var(--border-color); min-height: 320px;"
+                                 onmouseover="this.style.borderColor='rgba(56,189,248,0.6)';this.style.transform='translateY(-4px)';this.style.boxShadow='0 10px 40px rgba(2,6,23,0.8), 0 0 20px rgba(56,189,248,0.1)'"
+                                 onmouseout="this.style.borderColor='rgba(56,189,248,0.15)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                                <!-- 封面圖：與 index.html 卡片同樣置頂滿版 -->
+                                <div v-if="editForm.image && !imageLoadError" class="img-frame"
+                                     style="border-bottom: 1px solid var(--border-color);">
+                                    <img :src="editForm.image" :alt="editForm.title || 'Cover'">
+                                </div>
+                                <div class="flex flex-col h-full p-6" style="min-height: 280px;">
+                                    <div class="mb-4">
+                                        <div class="flex items-baseline gap-2 mb-4">
+                                            <span class="text-4xl font-semibold"
+                                                  style="color: var(--accent-light); text-shadow: 0 0 20px rgba(56,189,248,0.3); letter-spacing: -0.02em;">
+                                                {{ editForm.metric || '--' }}
+                                            </span>
+                                            <span class="text-xs uppercase tracking-wider"
+                                                  style="color: var(--text-secondary);">
+                                                {{ editForm.metricLabel || '' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-lg font-medium mb-3" style="color: var(--text-primary);">
+                                            {{ editForm.title || 'Project Title' }}
+                                        </div>
+                                        <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">
+                                            {{ editForm.desc || 'Project description will appear here...' }}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 mt-auto pt-4">
+                                        <span v-for="tag in editForm.tags" :key="tag"
+                                              class="text-xs px-3 py-1 rounded"
+                                              style="background: var(--tag-bg); color: var(--tag-text); border: 1px solid rgba(56,189,248,0.2); letter-spacing: 0.02em;">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Link Preview -->
+                            <div v-if="editForm.link" class="mt-4 p-3 rounded-lg"
+                                 style="background: var(--surface-color); border: 1px solid var(--border-color);">
+                                <p class="text-xs mb-1" style="color: var(--text-secondary);">Link</p>
+                                <a :href="editForm.link" target="_blank" rel="noopener"
+                                   class="text-sm break-all hover:underline"
+                                   style="color: var(--accent-light);">
+                                    {{ editForm.link }}
+                                </a>
+                            </div>
+
+                            <!-- Category Badge Preview -->
+                            <div class="mt-4 p-3 rounded-lg"
+                                 style="background: var(--surface-color); border: 1px solid var(--border-color);">
+                                <p class="text-xs mb-2" style="color: var(--text-secondary);">Category</p>
+                                <span class="text-xs px-3 py-1 rounded-full font-medium"
+                                      :style="getCategoryStyle(editForm.category)">
+                                    {{ getCategoryLabel(editForm.category) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Category Manager Modal -->
+        <div v-if="showCategoryModal"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="background: rgba(2,6,23,0.85); backdrop-filter: blur(4px);"
+             @click.self="showCategoryModal = false; pendingDelete = null">
+            <div class="rounded-2xl w-full flex flex-col"
+                 style="max-width: 680px; max-height: 88vh; background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(56,189,248,0.05);">
+
+                <!-- Header -->
+                <div class="p-6 pb-4" style="border-bottom: 1px solid var(--border-color);">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold" style="color: var(--text-primary);">分類設定</h3>
+                            <p class="text-sm mt-1" style="color: var(--text-secondary);">
+                                分類會跟著資料一起匯出，作品集頁面的篩選按鈕由此產生。
+                            </p>
+                        </div>
+                        <button @click="showCategoryModal = false; pendingDelete = null"
+                                class="text-2xl leading-none px-2"
+                                style="color: var(--text-secondary);"
+                                title="關閉">&times;</button>
+                    </div>
+                </div>
+
+                <!-- List -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-2">
+                    <div v-for="(c, i) in categories" :key="c.value"
+                         class="rounded-xl p-3"
+                         style="background: var(--surface-alt); border: 1px solid var(--border-color);">
+                        <div class="flex items-center gap-3">
+                            <!-- 排序 -->
+                            <div class="flex flex-col" style="line-height: 1;">
+                                <button @click="moveCategory(i, -1)" :disabled="i === 0"
+                                        class="text-xs px-1"
+                                        :style="'color:' + (i === 0 ? 'rgba(148,163,184,0.3)' : 'var(--text-secondary)') + '; cursor:' + (i === 0 ? 'default' : 'pointer')"
+                                        title="上移">&#9650;</button>
+                                <button @click="moveCategory(i, 1)" :disabled="i === categories.length - 1"
+                                        class="text-xs px-1"
+                                        :style="'color:' + (i === categories.length - 1 ? 'rgba(148,163,184,0.3)' : 'var(--text-secondary)') + '; cursor:' + (i === categories.length - 1 ? 'default' : 'pointer')"
+                                        title="下移">&#9660;</button>
+                            </div>
+
+                            <!-- 顏色 -->
+                            <input type="color" v-model="c.color"
+                                   class="flex-none rounded cursor-pointer"
+                                   style="width: 32px; height: 32px; background: transparent; border: 1px solid var(--border-color); padding: 2px;"
+                                   title="分類顏色">
+
+                            <!-- 名稱 + 代碼 -->
+                            <div class="flex-1 min-w-0">
+                                <input v-model="c.label" type="text" placeholder="分類名稱"
+                                       class="w-full px-2 py-1 rounded text-sm"
+                                       style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <div class="text-xs mt-1 flex items-center gap-2" style="color: var(--text-secondary);">
+                                    <code style="font-family: ui-monospace, Menlo, Consolas, monospace; opacity: 0.8;">{{ c.value }}</code>
+                                    <span style="opacity: 0.5;">·</span>
+                                    <span>{{ categoryUsage(c.value) }} 個專案</span>
+                                </div>
+                            </div>
+
+                            <!-- 預覽 -->
+                            <span class="text-xs px-2 py-0.5 rounded font-medium flex-none"
+                                  :style="getCategoryStyle(c.value)">
+                                {{ c.label || c.value }}
+                            </span>
+
+                            <!-- 刪除 -->
+                            <button @click="requestRemoveCategory(c)"
+                                    class="flex-none px-2 py-1 rounded text-sm"
+                                    style="background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3);"
+                                    onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+                                    onmouseout="this.style.background='rgba(239,68,68,0.1)'"
+                                    title="刪除這個分類">&times;</button>
+                        </div>
+
+                        <!-- 刪除確認：有專案在用時必須先決定改分到哪裡 -->
+                        <div v-if="pendingDelete && pendingDelete.target === c.value"
+                             class="mt-3 pt-3 rounded-lg p-3"
+                             style="border-top: 1px solid rgba(251,191,36,0.3); background: rgba(251,191,36,0.08);">
+                            <p class="text-xs mb-2" style="color: #fde68a;">
+                                有 <strong>{{ pendingDelete.used }}</strong> 個專案正在使用「{{ pendingDelete.label }}」。
+                                刪除後這些專案要改分到：
+                            </p>
+                            <div class="flex gap-2">
+                                <select v-model="pendingDelete.reassignTo"
+                                        class="flex-1 px-2 py-1 rounded text-xs"
+                                        style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color); appearance: auto;">
+                                    <option v-for="t in categories.filter(x => x.value !== pendingDelete.target)"
+                                            :key="t.value" :value="t.value">{{ t.label }}</option>
+                                </select>
+                                <button @click="pendingDelete = null"
+                                        class="px-3 py-1 rounded text-xs"
+                                        style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                                    取消
+                                </button>
+                                <button @click="confirmRemoveCategory"
+                                        class="px-3 py-1 rounded text-xs font-medium"
+                                        style="background: var(--danger); color: #fff;">
+                                    刪除並改分
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 孤兒分類：資料裡有但清單沒定義 -->
+                    <div v-if="orphanCategories.length"
+                         class="rounded-xl p-3 mt-4"
+                         style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3);">
+                        <p class="text-xs mb-2" style="color: #fde68a;">
+                            以下分類出現在專案資料中，但清單裡沒有定義（通常來自匯入的舊檔）。
+                            補上它們，篩選按鈕才會顯示：
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button v-for="v in orphanCategories" :key="v"
+                                    @click="adoptOrphan(v)"
+                                    class="text-xs px-2 py-1 rounded"
+                                    style="background: var(--surface-color); color: var(--text-primary); border: 1px dashed rgba(148,163,184,0.45);">
+                                + {{ v }}（{{ categoryUsage(v) }} 個專案）
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add new -->
+                <div class="p-6 pt-4" style="border-top: 1px solid var(--border-color);">
+                    <label class="block text-xs font-medium mb-1.5 uppercase tracking-wider"
+                           style="color: var(--text-secondary);">新增分類</label>
+                    <div class="flex gap-2">
+                        <input type="color" v-model="newCategoryColor"
+                               class="flex-none rounded cursor-pointer"
+                               style="width: 38px; height: 38px; background: transparent; border: 1px solid var(--border-color); padding: 2px;"
+                               title="分類顏色">
+                        <input v-model="newCategoryLabel" type="text"
+                               placeholder="例如：Data Engineering"
+                               @keyup.enter="addCategory"
+                               class="flex-1 px-4 py-2 rounded-lg text-sm"
+                               style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);"
+                               onfocus="this.style.borderColor='rgba(56,189,248,0.6)'"
+                               onblur="this.style.borderColor='rgba(56,189,248,0.15)'">
+                        <button @click="addCategory"
+                                class="px-5 py-2 rounded-lg text-sm font-medium"
+                                style="background: var(--accent); color: #fff;">
+                            + Add
+                        </button>
+                    </div>
+                    <p class="text-xs mt-2" style="color: var(--text-secondary); opacity: 0.75;">
+                        代碼會自動從名稱產生<span v-if="slugify(newCategoryLabel)">：<code style="font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--tag-text);">{{ slugify(newCategoryLabel) }}</code></span>。
+                        代碼建立後不可修改（專案是靠它對應的），但名稱隨時能改。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteModal"
+             class="fixed inset-0 z-50 flex items-center justify-center"
+             style="background: rgba(2,6,23,0.85); backdrop-filter: blur(4px);">
+            <div class="rounded-2xl p-8 max-w-md w-full mx-4"
+                 style="background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(56,189,248,0.05);">
+                <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary);">Delete Project</h3>
+                <p class="text-sm mb-6" style="color: var(--text-secondary);">
+                    Are you sure you want to delete "<strong style="color: var(--text-primary);">{{ projectToDelete?.title || 'Untitled' }}</strong>"? This action cannot be undone.
+                </p>
+                <div class="flex gap-3 justify-end">
+                    <button @click="showDeleteModal = false"
+                            class="px-5 py-2.5 rounded-lg text-sm font-medium"
+                            style="background: var(--surface-hover); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                        Cancel
+                    </button>
+                    <button @click="deleteProject"
+                            class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+                            style="background: var(--danger); color: #fff; border: 1px solid var(--danger);"
+                            onmouseover="this.style.background='#dc2626'"
+                            onmouseout="this.style.background='#ef4444'">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div v-if="toast.show"
+             class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-2xl transition-all duration-300"
+             :style="'background:' + (toast.type === 'success' ? 'rgba(34,197,94,0.15)' : toast.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(14,165,233,0.15)') +
+                     '; color:' + (toast.type === 'success' ? '#4ade80' : toast.type === 'error' ? '#f87171' : '#7dd3fc') +
+                     '; border: 1px solid ' + (toast.type === 'success' ? 'rgba(34,197,94,0.3)' : toast.type === 'error' ? 'rgba(239,68,68,0.3)' : 'rgba(14,165,233,0.3)')">
+            {{ toast.message }}
+        </div>
+    </div>
+
+    <script>
+    const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+    createApp({
+        setup() {
+            // ========== State ==========
+            const projects = ref([]);
+            const selectedProject = ref(null);
+            const activeFilter = ref('all');
+            const newTag = ref('');
+            const saveMessage = ref('');
+            const showDeleteModal = ref(false);
+            const projectToDelete = ref(null);
+            const fileInput = ref(null);
+            const imageInput = ref(null);
+            const toast = ref({ show: false, message: '', type: 'info' });
+
+            // 分類設定
+            const categories = ref([]);
+            const showCategoryModal = ref(false);
+            const newCategoryLabel = ref('');
+            const newCategoryColor = ref('#7dd3fc');
+            const pendingDelete = ref(null);   // { value, reassignTo } — 刪除仍在使用的分類時的暫存
+
+            // 圖片相關狀態
+            const imageBusy = ref(false);
+            const isDraggingImage = ref(false);
+            const imageLoadError = ref(false);
+            const storageBytes = ref(0);
+
+            const editForm = ref({
+                category: '',
+                metric: '',
+                metricLabel: '',
+                title: '',
+                link: '',
+                desc: '',
+                image: '',
+                tags: []
+            });
+
+            // ========== Constants ==========
+            const STORAGE_KEY = 'projects_admin_data';
+            const CATEGORY_STORAGE_KEY = 'projects_admin_categories';
+
+            // 圖片壓縮參數：內嵌 base64 會直接吃 localStorage 配額，
+            // 所以一律縮到長邊 1600px 並轉 JPEG，單張通常落在 150–400 KB。
+            const MAX_EDGE = 1600;
+            const JPEG_QUALITY = 0.82;
+            const MAX_SOURCE_BYTES = 20 * 1024 * 1024;  // 原始檔上限 20 MB
+            const STORAGE_LIMIT_BYTES = 5 * 1024 * 1024; // 瀏覽器 localStorage 常見上限
+
+            // 分類的預設值。使用者可在「Categories」中增減，設定會跟著資料一起匯出，
+            // index.html 才知道有哪些分類、叫什麼名字。
+            const DEFAULT_CATEGORIES = [
+                { value: 'automation',  label: 'Automation & Orchestration', color: '#7dd3fc' },
+                { value: 'marketing',   label: 'Growth & Marketing',         color: '#c4b5fd' },
+                { value: 'enterprise',  label: 'Enterprise BI',              color: '#86efac' },
+                { value: 'engineering', label: 'Engineering Enablement',     color: '#fde68a' }
+            ];
+
+            // 新增分類時的建議色盤
+            const COLOR_PRESETS = [
+                '#7dd3fc', '#c4b5fd', '#86efac', '#fde68a',
+                '#fca5a5', '#f9a8d4', '#a5b4fc', '#5eead4',
+                '#fdba74', '#d9f99d', '#e2e8f0'
+            ];
+
+            // ========== Computed ==========
+            const filteredProjects = computed(() => {
+                if (activeFilter.value === 'all') return projects.value;
+                return projects.value.filter(p => p.category === activeFilter.value);
+            });
+
+            // 側欄分頁：All + 各分類（用 slug 當短標籤，維持原本的緊湊排版）
+            const filterOptions = computed(() => [
+                { value: 'all', label: 'All' },
+                ...categories.value.map(c => ({ value: c.value, label: titleCase(c.value) }))
+            ]);
+
+            const categoryMap = computed(() => {
+                const map = {};
+                categories.value.forEach(c => { map[c.value] = c; });
+                return map;
+            });
+
+            // 資料裡出現、但分類清單中沒有定義的值 — 匯入舊檔或刪錯分類時會發生
+            const orphanCategories = computed(() => {
+                const known = categoryMap.value;
+                const seen = new Set();
+                projects.value.forEach(p => {
+                    if (p.category && !known[p.category]) seen.add(p.category);
+                });
+                return [...seen];
+            });
+
+            const isDataImage = computed(() => (editForm.value.image || '').startsWith('data:'));
+
+            // 文字框只顯示外部網址；base64 那一大串不往裡面塞
+            const imageUrlField = computed({
+                get: () => (isDataImage.value ? '' : (editForm.value.image || '')),
+                set: (val) => { editForm.value.image = val.trim(); imageLoadError.value = false; }
+            });
+
+            const imageInfo = computed(() => {
+                const img = editForm.value.image;
+                if (!img) return '';
+                if (img.startsWith('data:')) return 'Embedded · ' + formatBytes(dataUrlBytes(img));
+                return 'External link';
+            });
+
+            const imageCount = computed(() =>
+                projects.value.filter(p => (p.image || '').startsWith('data:')).length
+            );
+
+            const storageRatio = computed(() => storageBytes.value / STORAGE_LIMIT_BYTES);
+            const storageLabel = computed(() => formatBytes(storageBytes.value));
+
+            // ========== Methods ==========
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substring(2);
+            }
+
+            function formatBytes(bytes) {
+                if (!bytes) return '0 KB';
+                if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+                return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+            }
+
+            // base64 的 4 個字元代表 3 個位元組
+            function dataUrlBytes(dataUrl) {
+                const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+                const padding = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+                return Math.round(base64.length * 0.75) - padding;
+            }
+
+            function titleCase(str) {
+                return String(str || '')
+                    .replace(/[-_]+/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase());
+            }
+
+            function hexToRgba(hex, alpha) {
+                const h = String(hex || '').replace('#', '');
+                const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+                const n = parseInt(full, 16);
+                if (full.length !== 6 || Number.isNaN(n)) return `rgba(148,163,184,${alpha})`;
+                return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+            }
+
+            function getCategoryLabel(cat) {
+                const c = categoryMap.value[cat];
+                if (c) return c.label;
+                return cat ? `${cat}（未定義）` : '未分類';
+            }
+
+            function getCategoryStyle(cat) {
+                const c = categoryMap.value[cat];
+                // 未定義的分類用虛線灰底標示，讓問題看得出來而不是靜靜地混進去
+                if (!c) return 'background: rgba(148,163,184,0.12); color: #cbd5e1; border: 1px dashed rgba(148,163,184,0.45);';
+                return `background: ${hexToRgba(c.color, 0.15)}; color: ${c.color}; border: 1px solid ${hexToRgba(c.color, 0.35)};`;
+            }
+
+            // ========== Categories ==========
+            function slugify(label) {
+                return String(label || '').trim().toLowerCase()
+                    .replace(/[^a-z0-9一-鿿]+/g, '-')   // 中文字保留，其餘符號轉為連字號
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            function categoryUsage(value) {
+                return projects.value.filter(p => p.category === value).length;
+            }
+
+            function addCategory() {
+                const label = newCategoryLabel.value.trim();
+                if (!label) {
+                    showToast('請先輸入分類名稱', 'error');
+                    return;
+                }
+                const value = slugify(label);
+                if (!value) {
+                    showToast('這個名稱無法產生有效的代碼，請換一個', 'error');
+                    return;
+                }
+                if (categoryMap.value[value]) {
+                    showToast(`代碼 "${value}" 已經存在`, 'error');
+                    return;
+                }
+                categories.value.push({ value, label, color: newCategoryColor.value });
+                newCategoryLabel.value = '';
+                // 下一個顏色自動跳到還沒用過的預設色，省得每次都要挑
+                const used = new Set(categories.value.map(c => c.color.toLowerCase()));
+                newCategoryColor.value = COLOR_PRESETS.find(c => !used.has(c.toLowerCase())) || COLOR_PRESETS[0];
+                showToast(`已新增分類「${label}」`, 'success');
+            }
+
+            function requestRemoveCategory(cat) {
+                if (categories.value.length <= 1) {
+                    showToast('至少要保留一個分類', 'error');
+                    return;
+                }
+                const used = categoryUsage(cat.value);
+                if (used === 0) {
+                    removeCategory(cat.value);
+                    return;
+                }
+                // 有專案在用 — 先問要改分到哪裡，不讓專案變成孤兒
+                const fallback = categories.value.find(c => c.value !== cat.value);
+                pendingDelete.value = { target: cat.value, label: cat.label, used, reassignTo: fallback.value };
+            }
+
+            function confirmRemoveCategory() {
+                const { target, reassignTo } = pendingDelete.value;
+                let moved = 0;
+                projects.value.forEach(p => {
+                    if (p.category === target) { p.category = reassignTo; moved++; }
+                });
+                // 正在編輯的表單也要一起跟上
+                if (editForm.value.category === target) editForm.value.category = reassignTo;
+                removeCategory(target);
+                pendingDelete.value = null;
+                showToast(`已刪除分類，${moved} 個專案改分到「${getCategoryLabel(reassignTo)}」`, 'success', 4000);
+            }
+
+            function removeCategory(value) {
+                const idx = categories.value.findIndex(c => c.value === value);
+                if (idx === -1) return;
+                const label = categories.value[idx].label;
+                categories.value.splice(idx, 1);
+                if (activeFilter.value === value) activeFilter.value = 'all';
+                if (!pendingDelete.value) showToast(`已刪除分類「${label}」`, 'info');
+            }
+
+            function moveCategory(index, dir) {
+                const target = index + dir;
+                if (target < 0 || target >= categories.value.length) return;
+                const list = categories.value;
+                [list[index], list[target]] = [list[target], list[index]];
+            }
+
+            // 把資料裡的孤兒分類補進清單，而不是要使用者手動重建
+            function adoptOrphan(value) {
+                if (categoryMap.value[value]) return;
+                const used = new Set(categories.value.map(c => c.color.toLowerCase()));
+                const color = COLOR_PRESETS.find(c => !used.has(c.toLowerCase())) || COLOR_PRESETS[0];
+                categories.value.push({ value, label: titleCase(value), color });
+                showToast(`已把「${value}」加入分類清單`, 'success');
+            }
+
+            function saveCategoriesToStorage() {
+                try {
+                    localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(categories.value));
+                } catch (e) {
+                    console.error('Failed to save categories:', e);
+                }
+            }
+
+            function loadCategoriesFromStorage() {
+                try {
+                    const raw = localStorage.getItem(CATEGORY_STORAGE_KEY);
+                    const data = raw ? JSON.parse(raw) : null;
+                    categories.value = normalizeCategories(data) || DEFAULT_CATEGORIES.map(c => ({ ...c }));
+                } catch (e) {
+                    console.error('Failed to load categories:', e);
+                    categories.value = DEFAULT_CATEGORIES.map(c => ({ ...c }));
+                }
+            }
+
+            // 只接受長得像分類的資料，順手補上缺少的欄位
+            function normalizeCategories(input) {
+                if (!Array.isArray(input) || input.length === 0) return null;
+                const out = [];
+                const seen = new Set();
+                input.forEach(c => {
+                    const value = typeof c === 'string' ? slugify(c) : slugify(c?.value || c?.label);
+                    if (!value || seen.has(value)) return;
+                    seen.add(value);
+                    out.push({
+                        value,
+                        label: (typeof c === 'object' && c?.label) ? String(c.label) : titleCase(value),
+                        color: (typeof c === 'object' && /^#[0-9a-f]{3,6}$/i.test(c?.color || '')) ? c.color : COLOR_PRESETS[out.length % COLOR_PRESETS.length]
+                    });
+                });
+                return out.length ? out : null;
+            }
+
+            let toastTimer = null;
+            function showToast(message, type = 'info', duration = 2500) {
+                toast.value = { show: true, message, type };
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => { toast.value.show = false; }, duration);
+            }
+
+            function saveToStorage() {
+                const data = projects.value.map(p => {
+                    const { _id, ...rest } = p;
+                    return { _id, ...rest };
+                });
+                const json = JSON.stringify(data);
+                try {
+                    localStorage.setItem(STORAGE_KEY, json);
+                    storageBytes.value = json.length;
+                } catch (e) {
+                    console.error('Failed to save to localStorage:', e);
+                    // 內嵌圖片極可能撐爆 5 MB 配額。此時退一步：至少把文字資料存下來，
+                    // 並明確告知圖片沒進 localStorage，請立刻 Export 保住完整資料。
+                    try {
+                        const textOnly = data.map(p => ({
+                            ...p,
+                            image: (p.image || '').startsWith('data:') ? '' : p.image
+                        }));
+                        const fallback = JSON.stringify(textOnly);
+                        localStorage.setItem(STORAGE_KEY, fallback);
+                        storageBytes.value = fallback.length;
+                        showToast('localStorage 已滿：文字已保存，但內嵌圖片未存入。請立即 Export JSON 保留完整資料。', 'error', 8000);
+                    } catch (e2) {
+                        showToast('無法寫入 localStorage。請立即 Export JSON，避免資料遺失。', 'error', 8000);
+                    }
+                }
+            }
+
+            function loadFromStorage() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const data = JSON.parse(raw);
+                        if (Array.isArray(data)) {
+                            projects.value = data.map(p => ({
+                                _id: p._id || generateId(),
+                                category: p.category || categories.value[0]?.value || '',
+                                metric: p.metric || '',
+                                metricLabel: p.metricLabel || '',
+                                title: p.title || '',
+                                link: p.link || '',
+                                desc: p.desc || '',
+                                image: p.image || '',
+                                tags: Array.isArray(p.tags) ? [...p.tags] : []
+                            }));
+                            storageBytes.value = raw.length;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load from localStorage:', e);
+                }
+            }
+
+            function selectProject(project) {
+                selectedProject.value = project;
+                editForm.value = {
+                    category: project.category,
+                    metric: project.metric,
+                    metricLabel: project.metricLabel,
+                    title: project.title,
+                    link: project.link,
+                    desc: project.desc,
+                    image: project.image || '',
+                    tags: [...(project.tags || [])]
+                };
+                imageLoadError.value = false;
+                saveMessage.value = '';
+            }
+
+            function addProject() {
+                const newProject = {
+                    _id: generateId(),
+                    category: categories.value[0]?.value || '',
+                    metric: '',
+                    metricLabel: '',
+                    title: '',
+                    link: '',
+                    desc: '',
+                    image: '',
+                    tags: []
+                };
+                projects.value.unshift(newProject);
+                selectProject(newProject);
+                saveToStorage();
+                showToast('New project created', 'success');
+            }
+
+            function saveProject() {
+                if (!selectedProject.value) return;
+                const idx = projects.value.findIndex(p => p._id === selectedProject.value._id);
+                if (idx === -1) {
+                    saveMessage.value = 'Error: Project not found';
+                    return;
+                }
+                projects.value[idx] = {
+                    _id: selectedProject.value._id,
+                    ...JSON.parse(JSON.stringify(editForm.value))
+                };
+                selectedProject.value = projects.value[idx];
+                saveToStorage();
+                saveMessage.value = 'Saved successfully!';
+                showToast('Changes saved', 'success');
+                setTimeout(() => { saveMessage.value = ''; }, 2000);
+            }
+
+            function confirmDelete(project) {
+                projectToDelete.value = project;
+                showDeleteModal.value = true;
+            }
+
+            function deleteProject() {
+                if (!projectToDelete.value) return;
+                const idx = projects.value.findIndex(p => p._id === projectToDelete.value._id);
+                if (idx !== -1) {
+                    projects.value.splice(idx, 1);
+                    if (selectedProject.value && selectedProject.value._id === projectToDelete.value._id) {
+                        selectedProject.value = null;
+                    }
+                    saveToStorage();
+                    showToast('Project deleted', 'info');
+                }
+                showDeleteModal.value = false;
+                projectToDelete.value = null;
+            }
+
+            function duplicateProject(project) {
+                const dup = {
+                    _id: generateId(),
+                    category: project.category,
+                    metric: project.metric,
+                    metricLabel: project.metricLabel,
+                    title: (project.title || 'Untitled') + ' (Copy)',
+                    link: project.link,
+                    desc: project.desc,
+                    image: project.image || '',
+                    tags: [...(project.tags || [])]
+                };
+                const idx = projects.value.findIndex(p => p._id === project._id);
+                projects.value.splice(idx + 1, 0, dup);
+                selectProject(dup);
+                saveToStorage();
+                showToast('Project duplicated', 'success');
+            }
+
+            function addTag() {
+                const tag = newTag.value.trim();
+                if (tag && !editForm.value.tags.includes(tag)) {
+                    editForm.value.tags.push(tag);
+                    newTag.value = '';
+                }
+            }
+
+            function removeTag(index) {
+                editForm.value.tags.splice(index, 1);
+            }
+
+            // ========== Cover Image ==========
+            function pickImage() {
+                imageInput.value.click();
+            }
+
+            function handleImageSelect(event) {
+                const file = event.target.files[0];
+                if (file) processImageFile(file);
+                event.target.value = '';   // 允許重選同一個檔案
+            }
+
+            function handleImageDrop(event) {
+                isDraggingImage.value = false;
+                const file = Array.from(event.dataTransfer.files || [])
+                    .find(f => f.type.startsWith('image/'));
+                if (file) {
+                    processImageFile(file);
+                } else {
+                    showToast('拖進來的不是圖片檔', 'error');
+                }
+            }
+
+            // 螢幕截圖後直接 Ctrl+V
+            function handlePaste(event) {
+                if (!selectedProject.value || imageBusy.value) return;
+                const item = Array.from(event.clipboardData?.items || [])
+                    .find(i => i.type.startsWith('image/'));
+                if (!item) return;
+                const file = item.getAsFile();
+                if (file) {
+                    event.preventDefault();
+                    processImageFile(file);
+                }
+            }
+
+            async function processImageFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    showToast('僅支援圖片檔', 'error');
+                    return;
+                }
+                if (file.size > MAX_SOURCE_BYTES) {
+                    showToast(`原始檔 ${formatBytes(file.size)} 太大（上限 ${formatBytes(MAX_SOURCE_BYTES)}）`, 'error', 5000);
+                    return;
+                }
+                imageBusy.value = true;
+                imageLoadError.value = false;
+                try {
+                    const { dataUrl, width, height } = await compressImage(file);
+                    editForm.value.image = dataUrl;
+                    const out = dataUrlBytes(dataUrl);
+                    showToast(
+                        `圖片已就緒 ${width}×${height} · ${formatBytes(file.size)} → ${formatBytes(out)}　記得按 Save`,
+                        'success', 4000
+                    );
+                } catch (err) {
+                    console.error(err);
+                    showToast(err.message || '圖片處理失敗', 'error', 4000);
+                } finally {
+                    imageBusy.value = false;
+                }
+            }
+
+            // 用 canvas 縮圖並轉 JPEG，避免 base64 過肥
+            function compressImage(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onerror = () => reject(new Error('讀取檔案失敗'));
+                    reader.onload = () => {
+                        const img = new Image();
+                        img.onerror = () => reject(new Error('無法解析這個圖片格式'));
+                        img.onload = () => {
+                            const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+                            const width = Math.max(1, Math.round(img.width * scale));
+                            const height = Math.max(1, Math.round(img.height * scale));
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            // PNG 透明區轉 JPEG 會變黑，先鋪上卡片底色
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(0, 0, width, height);
+                            ctx.drawImage(img, 0, 0, width, height);
+                            try {
+                                resolve({ dataUrl: canvas.toDataURL('image/jpeg', JPEG_QUALITY), width, height });
+                            } catch (e) {
+                                reject(new Error('圖片轉檔失敗（可能是跨網域來源）'));
+                            }
+                        };
+                        img.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function removeImage() {
+                editForm.value.image = '';
+                imageLoadError.value = false;
+                showToast('封面圖已移除 — 記得按 Save', 'info');
+            }
+
+            // ========== Import / Export ==========
+            function cleanExportData() {
+                return projects.value.map(p => {
+                    const { _id, ...rest } = p;
+                    return rest;
+                });
+            }
+
+            // 匯出時把分類設定一起帶上，index.html 才知道有哪些分類
+            function cleanExportBundle() {
+                return {
+                    categories: categories.value.map(c => ({ ...c })),
+                    projects: cleanExportData()
+                };
+            }
+
+            function downloadFile(content, filename, mime) {
+                const blob = new Blob([content], { type: mime });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                return blob.size;
+            }
+
+            // 內嵌圖片會讓檔案變大，順手把體積講清楚
+            function sizeNote(bytes) {
+                return imageCount.value
+                    ? ` · ${formatBytes(bytes)}（含 ${imageCount.value} 張內嵌圖片）`
+                    : ` · ${formatBytes(bytes)}`;
+            }
+
+            function exportJSON() {
+                const bundle = cleanExportBundle();
+                const size = downloadFile(
+                    JSON.stringify(bundle, null, 2), 'projects.json', 'application/json'
+                );
+                showToast(
+                    `Exported projects.json · ${bundle.projects.length} projects · ${bundle.categories.length} categories${sizeNote(size)}`,
+                    'success', 4000
+                );
+            }
+
+            // index.html 用 <script src="projects.js"> 讀這個檔，
+            // 因此雙擊 file:// 也能顯示 — fetch 的 CORS 限制繞過去了。
+            function exportJS() {
+                const bundle = cleanExportBundle();
+                const js =
+                    '// projects.js — 由 admin.html 的 Export JS 產生\n' +
+                    '// 用途：讓 index.html 直接雙擊（file://）就能讀到資料，不需本機伺服器。\n' +
+                    '// 注意：後台編輯完要重新匯出覆蓋此檔，否則畫面還是舊資料。\n\n' +
+                    'window.CATEGORIES = ' + JSON.stringify(bundle.categories, null, 2) + ';\n\n' +
+                    'window.PROJECTS = ' + JSON.stringify(bundle.projects, null, 2) + ';\n';
+                const size = downloadFile(js, 'projects.js', 'application/javascript');
+                showToast(
+                    `Exported projects.js · ${bundle.projects.length} projects · ${bundle.categories.length} categories${sizeNote(size)}　放到 index.html 同層即可雙擊開啟`,
+                    'success', 5000
+                );
+            }
+
+            function importJSON() {
+                fileInput.value.click();
+            }
+
+            function handleFileImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        // 兩種格式都吃：舊的純陣列，和帶分類設定的 { categories, projects }
+                        const raw = JSON.parse(String(e.target.result).replace(/\0+$/, ''));
+                        const list = Array.isArray(raw) ? raw : raw?.projects;
+                        if (!Array.isArray(list)) {
+                            showToast('格式不符：需要 JSON 陣列，或含 projects 陣列的物件', 'error', 4000);
+                            return;
+                        }
+
+                        const importedCats = Array.isArray(raw) ? null : normalizeCategories(raw?.categories);
+                        if (importedCats) categories.value = importedCats;
+
+                        const fallbackCat = categories.value[0]?.value || '';
+                        projects.value = list.map(p => ({
+                            _id: generateId(),
+                            category: p.category || fallbackCat,
+                            metric: p.metric || '',
+                            metricLabel: p.metricLabel || '',
+                            title: p.title || '',
+                            link: p.link || '',
+                            desc: p.desc || '',
+                            image: typeof p.image === 'string' ? p.image : '',
+                            tags: Array.isArray(p.tags) ? [...p.tags] : []
+                        }));
+                        selectedProject.value = null;
+                        activeFilter.value = 'all';
+                        saveToStorage();
+                        saveCategoriesToStorage();
+
+                        const withImg = projects.value.filter(p => p.image).length;
+                        const parts = [`Imported ${list.length} projects`];
+                        if (importedCats) parts.push(`${importedCats.length} categories`);
+                        if (withImg) parts.push(`${withImg} 張封面圖`);
+                        if (orphanCategories.value.length) {
+                            parts.push(`${orphanCategories.value.length} 個未定義分類（可在 Categories 中補上）`);
+                        }
+                        showToast(parts.join(' · '), 'success', 4500);
+                    } catch (err) {
+                        showToast('JSON 解析失敗：' + err.message, 'error', 4000);
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            }
+
+            // ========== Watch for auto-save to localStorage ==========
+            watch(projects, () => {
+                saveToStorage();
+            }, { deep: true });
+
+            watch(categories, () => {
+                saveCategoriesToStorage();
+            }, { deep: true });
+
+            // ========== Lifecycle ==========
+            onMounted(() => {
+                loadCategoriesFromStorage();   // 分類要先載入，專案才有東西可以對應
+                loadFromStorage();
+                window.addEventListener('paste', handlePaste);
+            });
+
+            return {
+                projects,
+                selectedProject,
+                activeFilter,
+                editForm,
+                newTag,
+                saveMessage,
+                showDeleteModal,
+                projectToDelete,
+                fileInput,
+                toast,
+                filterOptions,
+                filteredProjects,
+                getCategoryLabel,
+                getCategoryStyle,
+                selectProject,
+                addProject,
+                saveProject,
+                confirmDelete,
+                deleteProject,
+                duplicateProject,
+                addTag,
+                removeTag,
+                exportJSON,
+                exportJS,
+                importJSON,
+                handleFileImport,
+                // Categories
+                categories,
+                categoryMap,
+                orphanCategories,
+                showCategoryModal,
+                newCategoryLabel,
+                newCategoryColor,
+                pendingDelete,
+                COLOR_PRESETS,
+                titleCase,
+                slugify,
+                categoryUsage,
+                addCategory,
+                requestRemoveCategory,
+                confirmRemoveCategory,
+                moveCategory,
+                adoptOrphan,
+                // Cover image
+                imageInput,
+                imageBusy,
+                isDraggingImage,
+                imageLoadError,
+                isDataImage,
+                imageUrlField,
+                imageInfo,
+                imageCount,
+                storageLabel,
+                storageRatio,
+                pickImage,
+                handleImageSelect,
+                handleImageDrop,
+                removeImage,
+                MAX_EDGE
+            };
+        }
+    }).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# 中間產物與原始素材，不需要進版控
+projects_ex.json
+projects_ex2.json
+*.corrupt.bak
+gpu.png

@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quick Start | Portfolio Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg-color: #020617;
+        --surface-color: #0f172a;
+        --surface-alt: #0b1120;
+        --surface-hover: #1e293b;
+        --border-color: rgba(56, 189, 248, 0.15);
+        --border-hover: rgba(56, 189, 248, 0.6);
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-dim: #64748b;
+        --tag-bg: rgba(14, 165, 233, 0.15);
+        --tag-text: #7dd3fc;
+        --accent: #0ea5e9;
+        --accent-light: #38bdf8;
+        --accent-glow: rgba(56, 189, 248, 0.15);
+        --warn-bg: rgba(251, 191, 36, 0.1);
+        --warn-border: rgba(251, 191, 36, 0.3);
+        --warn-text: #fde68a;
+        --ok: #22c55e;
+        --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        background: var(--bg-color);
+        color: var(--text-primary);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        padding: 4rem 2rem 6rem;
+        min-height: 100vh;
+    }
+
+    /* 背景微光 */
+    body::before {
+        content: '';
+        position: fixed;
+        top: -30vh; left: 50%;
+        width: 120vw; height: 90vh;
+        transform: translateX(-50%);
+        background: radial-gradient(closest-side, rgba(56,189,248,0.10), transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .container { max-width: 980px; margin: 0 auto; position: relative; z-index: 1; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-color); }
+    ::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,0.5); }
+    *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+    /* ── Header ── */
+    header { margin-bottom: 3rem; }
+
+    .eyebrow {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase;
+        color: var(--tag-text);
+        background: var(--tag-bg);
+        border: 1px solid rgba(56,189,248,0.2);
+        padding: 0.3rem 0.8rem; border-radius: 999px;
+        margin-bottom: 1.5rem;
+    }
+    .eyebrow .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--accent-light);
+        box-shadow: 0 0 8px var(--accent-light);
+    }
+
+    h1 {
+        font-size: 3rem; font-weight: 600; letter-spacing: -0.03em;
+        line-height: 1.15; margin-bottom: 1rem;
+        background: linear-gradient(180deg, #ffffff 0%, #38bdf8 110%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .subtitle { font-size: 1.15rem; color: var(--text-secondary); max-width: 62ch; }
+
+    .meta-row {
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
+        margin-top: 1.75rem;
+    }
+    .chip {
+        font-size: 0.75rem; color: var(--text-secondary);
+        background: var(--surface-alt);
+        border: 1px solid var(--border-color);
+        padding: 0.3rem 0.7rem; border-radius: 5px;
+        font-family: var(--mono);
+    }
+
+    /* ── Sections ── */
+    section { margin-top: 3.5rem; }
+
+    h2 {
+        font-size: 1.35rem; font-weight: 600; letter-spacing: -0.01em;
+        margin-bottom: 0.4rem;
+        display: flex; align-items: center; gap: 0.7rem;
+    }
+    h2 .num {
+        font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+        color: var(--accent-light);
+        border: 1px solid rgba(56,189,248,0.35);
+        background: var(--tag-bg);
+        width: 26px; height: 26px; flex: none;
+        display: grid; place-items: center; border-radius: 6px;
+    }
+    .section-desc { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; padding-left: 2.4rem; }
+    @media (max-width: 640px) { .section-desc { padding-left: 0; } }
+
+    /* ── Cards ── */
+    .card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem 1.75rem;
+        transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+    .card.hover:hover {
+        border-color: var(--border-hover);
+        background: var(--surface-hover);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(2,6,23,0.8), 0 0 20px rgba(56,189,248,0.1);
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; }
+
+    /* ── Launch cards ── */
+    a.launch {
+        text-decoration: none; color: inherit;
+        display: flex; flex-direction: column; gap: 0.45rem;
+        position: relative;
+    }
+    a.launch .icon { font-size: 1.4rem; line-height: 1; }
+    a.launch .name { font-weight: 500; font-size: 1.05rem; color: var(--text-primary); }
+    a.launch .why { font-size: 0.875rem; color: var(--text-secondary); }
+    a.launch .file { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); margin-top: 0.35rem; }
+    a.launch .arrow {
+        position: absolute; top: 1.35rem; right: 0;
+        color: var(--accent-light); opacity: 0; transform: translateX(-4px);
+        transition: all 0.25s ease; font-size: 0.9rem;
+    }
+    a.launch:hover .arrow { opacity: 1; transform: translateX(0); }
+
+    /* ── Steps ── */
+    ol.steps { list-style: none; counter-reset: step; }
+    ol.steps > li {
+        counter-increment: step;
+        position: relative;
+        padding: 0 0 1.75rem 3rem;
+        border-left: 1px solid var(--border-color);
+        margin-left: 0.85rem;
+    }
+    ol.steps > li:last-child { border-left-color: transparent; padding-bottom: 0; }
+    ol.steps > li::before {
+        content: counter(step);
+        position: absolute; left: -0.85rem; top: 0;
+        width: 1.7rem; height: 1.7rem;
+        background: var(--surface-alt);
+        border: 1px solid rgba(56,189,248,0.35);
+        color: var(--accent-light);
+        border-radius: 50%;
+        display: grid; place-items: center;
+        font-family: var(--mono); font-size: 0.75rem; font-weight: 500;
+    }
+    ol.steps .step-title { font-weight: 500; margin-bottom: 0.35rem; }
+    ol.steps .step-body { color: var(--text-secondary); font-size: 0.925rem; }
+
+    /* ── Code blocks ── */
+    .code {
+        position: relative;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.85rem 3.2rem 0.85rem 1rem;
+        font-family: var(--mono); font-size: 0.82rem;
+        color: #cbd5e1;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 0.75rem 0;
+    }
+    .code .c { color: var(--text-dim); }
+    .code .k { color: var(--accent-light); }
+    .copy {
+        position: absolute; top: 0.5rem; right: 0.5rem;
+        background: rgba(14,165,233,0.12);
+        border: 1px solid rgba(56,189,248,0.25);
+        color: var(--tag-text);
+        font-family: 'Inter', sans-serif; font-size: 0.68rem;
+        letter-spacing: 0.04em; text-transform: uppercase;
+        padding: 0.25rem 0.55rem; border-radius: 5px;
+        cursor: pointer; transition: all 0.18s ease;
+    }
+    .copy:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .copy.done { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #86efac; }
+
+    code.inline {
+        font-family: var(--mono); font-size: 0.85em;
+        background: var(--tag-bg); color: var(--tag-text);
+        padding: 0.1rem 0.4rem; border-radius: 4px;
+        border: 1px solid rgba(56,189,248,0.18);
+    }
+
+    /* ── Flow diagram ── */
+    .flow {
+        display: flex; align-items: stretch; gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .flow-node {
+        flex: 1 1 180px;
+        background: var(--surface-alt);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.1rem;
+        text-align: center;
+    }
+    .flow-node .fn-file { font-family: var(--mono); font-size: 0.82rem; color: var(--accent-light); }
+    .flow-node .fn-role { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem; }
+    .flow-arrow {
+        display: grid; place-items: center;
+        color: var(--accent); font-size: 1.1rem;
+        flex: 0 0 auto; min-width: 1.5rem;
+    }
+    .flow-arrow small {
+        display: block; font-size: 0.6rem; color: var(--text-dim);
+        letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 520px; }
+    th, td { text-align: left; padding: 0.7rem 1rem; border-bottom: 1px solid rgba(56,189,248,0.08); }
+    th {
+        background: var(--surface-alt); color: var(--text-secondary);
+        font-weight: 500; font-size: 0.72rem;
+        letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    td { color: var(--text-secondary); }
+    tr:last-child td { border-bottom: none; }
+    td.field { color: var(--tag-text); font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; }
+    tbody tr:hover td { background: rgba(56,189,248,0.03); }
+
+    /* ── Callout ── */
+    .callout {
+        border-radius: 10px; padding: 1rem 1.25rem;
+        font-size: 0.9rem; display: flex; gap: 0.85rem; align-items: flex-start;
+        background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text);
+        margin: 1.25rem 0;
+    }
+    .callout.info {
+        background: rgba(14,165,233,0.08); border-color: rgba(56,189,248,0.25); color: #bae6fd;
+    }
+    .callout .ci { flex: none; }
+    .callout strong { color: inherit; font-weight: 600; }
+
+    /* ── Env status banner ── */
+    #env {
+        display: none;
+        margin-bottom: 2.5rem;
+        border-radius: 10px; padding: 1rem 1.25rem;
+        font-size: 0.9rem;
+        border: 1px solid;
+        align-items: flex-start; gap: 0.85rem;
+    }
+    #env.show { display: flex; }
+    #env.warn { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+    #env.ok { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #bbf7d0; }
+    #env code { font-family: var(--mono); font-size: 0.85em; opacity: 0.9; }
+
+    /* ── FAQ ── */
+    details {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 0.9rem 1.25rem;
+        margin-bottom: 0.6rem;
+        transition: border-color 0.2s ease;
+    }
+    details[open] { border-color: rgba(56,189,248,0.35); }
+    summary {
+        cursor: pointer; font-weight: 500; font-size: 0.95rem;
+        list-style: none; display: flex; align-items: center; gap: 0.6rem;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+        content: '+'; font-family: var(--mono); color: var(--accent-light);
+        font-size: 1rem; width: 1rem; flex: none;
+    }
+    details[open] summary::before { content: '−'; }
+    details .answer { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.7rem; padding-left: 1.6rem; }
+
+    footer {
+        margin-top: 4.5rem; padding-top: 1.75rem;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-dim); font-size: 0.8rem;
+        display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+        body { padding: 2.5rem 1.1rem 4rem; }
+        h1 { font-size: 2.1rem; }
+        .subtitle { font-size: 1rem; }
+        .flow-arrow { transform: rotate(90deg); padding: 0.25rem 0; }
+        .flow-node { flex-basis: 100%; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <span class="eyebrow"><span class="dot"></span>Quick Start</span>
+        <h1>Portfolio Manager<br>五分鐘上手指南</h1>
+        <p class="subtitle">
+            一套零建置（zero-build）的 AI 作品集系統：用後台視覺化編輯專案（含封面圖上傳）、匯出成資料檔、
+            再由公開作品集頁面自動渲染。沒有 npm、沒有 bundler，連本機伺服器都可以不要 —— 雙擊就開。
+        </p>
+        <div class="meta-row">
+            <span class="chip">Vue 3 CDN</span>
+            <span class="chip">Tailwind CSS CDN</span>
+            <span class="chip">Vanilla JS</span>
+            <span class="chip">localStorage</span>
+            <span class="chip">Base64 圖片內嵌</span>
+            <span class="chip">No build step</span>
+        </div>
+    </header>
+
+    <div id="env"><span class="ci">◆</span><span id="env-msg"></span></div>
+
+    <!-- ═══ 1. 三個檔案 ═══ -->
+    <section>
+        <h2><span class="num">01</span>資料怎麼流動</h2>
+        <p class="section-desc">整個系統只有三個角色。搞懂這張圖，其他都是細節。</p>
+
+        <div class="flow">
+            <div class="flow-node">
+                <div class="fn-file">admin.html</div>
+                <div class="fn-role">編輯後台<br>CRUD + localStorage</div>
+            </div>
+            <div class="flow-arrow">→<small>Export</small></div>
+            <div class="flow-node">
+                <div class="fn-file">projects.js<br>projects.json</div>
+                <div class="fn-role">同一份資料的兩種包裝<br>可內嵌封面圖</div>
+            </div>
+            <div class="flow-arrow">→<small>讀取</small></div>
+            <div class="flow-node">
+                <div class="fn-file">index.html</div>
+                <div class="fn-role">對外展示頁<br>篩選 + 光暈特效</div>
+            </div>
+        </div>
+
+        <div class="callout info">
+            <span class="ci">◆</span>
+            <span>
+                <strong>為什麼資料檔有兩種？</strong>
+                <code class="inline">projects.js</code> 用 <code class="inline">&lt;script src&gt;</code> 載入，
+                <strong>雙擊開檔就能用</strong>；<code class="inline">projects.json</code> 用
+                <code class="inline">fetch</code> 載入，<strong>需要 HTTP 供應</strong>。
+                內容完全相同，前者優先。詳見第 3 節。
+            </span>
+        </div>
+
+        <div class="callout info">
+            <span class="ci">↺</span>
+            <span>
+                <strong>回頭編輯？</strong> 在後台按 <strong>Import JSON</strong> 選擇現有的
+                <code class="inline">projects.json</code>，就能把資料載回編輯器繼續改 —— 這條路是雙向的。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 2. 啟動 ═══ -->
+    <section>
+        <h2><span class="num">02</span>啟動本機伺服器</h2>
+        <p class="section-desc">
+            在專案資料夾（<code class="inline">0.product_menu</code>）內執行任一條指令，任選一種。
+        </p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.15rem;">Python（內建，最省事）</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">macOS / Linux / Windows 皆可</div>
+                <div class="code" data-copy="python -m http.server 8000"><span class="k">python</span> -m http.server 8000<button class="copy">Copy</button></div>
+            </div>
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.15rem;">Node.js</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">已安裝 npm 的話更快</div>
+                <div class="code" data-copy="npx serve ."><span class="k">npx</span> serve .<button class="copy">Copy</button></div>
+            </div>
+        </div>
+
+        <div class="code" data-copy="http://localhost:8000/quick_start.html"><span class="c"># 然後在瀏覽器打開</span>
+http://localhost:8000/admin.html      <span class="c">← 編輯後台</span>
+http://localhost:8000/index.html  <span class="c">← 作品集頁面</span><button class="copy">Copy</button></div>
+
+        <div class="callout info">
+            <span class="ci">✓</span>
+            <span>
+                <strong>其實不開伺服器也行。</strong>
+                只要同層有 <code class="inline">projects.js</code>（後台按 <strong>Export JS</strong> 產生），
+                <code class="inline">index.html</code> 雙擊就能直接看 —— 詳見下一節。
+                伺服器仍然有用：<code class="inline">projects.json</code> 那條路、以及用相對路徑引用圖片時需要它。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 3. 雙擊直接開 ═══ -->
+    <section>
+        <h2><span class="num">03</span>雙擊直接開（不用伺服器）</h2>
+        <p class="section-desc">
+            瀏覽器把 <code class="inline">file://</code> 視為不透明來源，一律擋掉 <code class="inline">fetch</code>，
+            所以讀不到 <code class="inline">projects.json</code>。但
+            <code class="inline">&lt;script src&gt;</code> <strong>不受這個限制</strong> —— 資料改成 JS 檔就繞過去了。
+        </p>
+
+        <div class="flow">
+            <div class="flow-node">
+                <div class="fn-file">admin.html</div>
+                <div class="fn-role">按 Export JS</div>
+            </div>
+            <div class="flow-arrow">→<small>下載</small></div>
+            <div class="flow-node">
+                <div class="fn-file">projects.js</div>
+                <div class="fn-role">window.PROJECTS = […]<br>放到同一層</div>
+            </div>
+            <div class="flow-arrow">→<small>script src</small></div>
+            <div class="flow-node">
+                <div class="fn-file">index.html</div>
+                <div class="fn-role">雙擊即開<br>零錯誤</div>
+            </div>
+        </div>
+
+        <div class="code" data-copy="window.PROJECTS = [ ... ];"><span class="c">// projects.js 的內容就是這樣，沒有別的</span>
+<span class="k">window</span>.PROJECTS = [
+  { <span class="k">"title"</span>: "...", <span class="k">"image"</span>: "data:image/jpeg;base64,...", ... }
+];<button class="copy">Copy</button></div>
+
+        <div class="callout info">
+            <span class="ci">◆</span>
+            <span>
+                <strong>載入順序是 projects.js 優先。</strong>
+                <code class="inline">index.html</code> 先看 <code class="inline">window.PROJECTS</code>，
+                有就直接用；沒有才退回 <code class="inline">fetch('projects.json')</code>。
+                所以兩種開法都通，同一個檔案不必改。
+                封面圖若是上傳內嵌的 base64，圖片也一起在 <code class="inline">projects.js</code> 裡 ——
+                <strong><code class="inline">index.html</code> + <code class="inline">projects.js</code> 兩個檔案就是完整作品集</strong>，
+                壓成 zip 寄給客戶對方雙擊就能看。
+            </span>
+        </div>
+
+        <div class="callout">
+            <span class="ci">⚠</span>
+            <span>
+                <strong>編輯完要重新 Export JS。</strong>
+                <code class="inline">projects.js</code> 是靜態快照，後台改了資料它不會自己更新。
+                同時維護兩份（<code class="inline">.js</code> 與 <code class="inline">.json</code>）時，記得兩個都要重新匯出。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 4. 第一次操作 ═══ -->
+    <section>
+        <h2><span class="num">04</span>第一次操作流程</h2>
+        <p class="section-desc">從空白到一頁完成的作品集，大約需要五個動作。</p>
+
+        <ol class="steps">
+            <li>
+                <div class="step-title">開啟 admin.html</div>
+                <div class="step-body">
+                    左側是專案清單、右側是編輯表單。首次開啟若曾編輯過，會自動從 localStorage
+                    （key：<code class="inline">projects_admin_data</code>）還原上次的內容。
+                </div>
+            </li>
+            <li>
+                <div class="step-title">載入既有資料（可選）</div>
+                <div class="step-body">
+                    按右上角 <strong>Import JSON</strong>，選擇專案內附的
+                    <code class="inline">projects.json</code>（已有 7 筆範例），立刻有東西可以練手。
+                </div>
+            </li>
+            <li>
+                <div class="step-title">新增與編輯專案</div>
+                <div class="step-body">
+                    <strong>+ New</strong> 建立空專案 → 填寫欄位 → <strong>Save</strong>。
+                    最上方的 <strong>Cover Image</strong> 可拖放／貼上專案截圖（詳見下一節）。
+                    標籤（tags）在輸入框按 <kbd>Enter</kbd> 即新增，點標籤上的 × 移除。
+                    <strong>Duplicate</strong> 可一鍵複製類似專案。所有變更都會即時寫入 localStorage，重新整理不會丟。
+                </div>
+            </li>
+            <li>
+                <div class="step-title">匯出資料</div>
+                <div class="step-body">
+                    <strong>Export JS</strong> 下載 <code class="inline">projects.js</code>（雙擊即可看，推薦）、
+                    <strong>Export JSON</strong> 下載 <code class="inline">projects.json</code>（HTTP 供應用）。
+                    兩者內容相同，只差包裝方式。下載的檔案<strong>要放回專案資料夾覆蓋原檔</strong>
+                    （通常會落在「下載」目錄，記得搬過來）。
+                </div>
+            </li>
+            <li>
+                <div class="step-title">打開 index.html 驗收</div>
+                <div class="step-body">
+                    重新整理即可看到新卡片，含分類篩選與游標追蹤光暈。這就是要交出去給客戶／面試官看的那一頁。
+                </div>
+            </li>
+        </ol>
+    </section>
+
+    <!-- ═══ 5. 封面圖片 ═══ -->
+    <section>
+        <h2><span class="num">05</span>加上封面圖片</h2>
+        <p class="section-desc">
+            每個專案可以帶一張 16:9 封面圖，作品集頁面會把它滿版放在卡片頂端。純前端沒有後端可以存檔，
+            所以提供兩種模式 —— 大多數情況直接用第一種。
+        </p>
+
+        <div class="grid-2">
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.3rem;">A · 上傳內嵌（推薦）</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);">
+                    在 <strong>Cover Image</strong> 區塊<strong>拖放檔案</strong>、點擊選檔，或截圖後直接
+                    <code class="inline">Ctrl</code>+<code class="inline">V</code> 貼上。
+                    圖片會自動縮到長邊 1600px、轉成 JPEG，再以 base64 內嵌進資料檔。
+                    <br><br>
+                    好處是<strong>整份作品集就是一個檔案</strong>：JSON 搬到哪裡圖片就跟到哪裡，
+                    連 <code class="inline">file://</code> 直接開都看得到圖。
+                </div>
+            </div>
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.3rem;">B · 外部連結 / 相對路徑</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);">
+                    在圖片區塊下方的文字框填入 <code class="inline">https://…</code> 的網址，
+                    或自建資料夾後填相對路徑，例如 <code class="inline">images/cover.jpg</code>。
+                    <br><br>
+                    JSON 保持輕薄，適合圖多、或圖片已放在 CDN／圖床上的情況。代價是<strong>檔案要自己顧</strong>，
+                    相對路徑也必須以 HTTP 供應才讀得到。
+                </div>
+            </div>
+        </div>
+
+        <div class="callout">
+            <span class="ci">⚠</span>
+            <span>
+                <strong>注意 localStorage 的 5 MB 上限。</strong>
+                內嵌圖片吃的是同一份配額，導覽列右上角的量表就是在看這個 —— 超過 80% 會轉成琥珀色。
+                真的滿了，後台會保住文字資料、跳出紅色警告並提醒你立刻 <strong>Export JSON</strong>
+                （匯出的檔案永遠是完整的，含圖片）。圖多的話建議走上面的模式 B。
+            </span>
+        </div>
+
+        <div class="callout info">
+            <span class="ci">✎</span>
+            <span>
+                幾個實際會遇到的細節：壓縮一律輸出 JPEG，所以<strong>動態 GIF 會變成靜態</strong>、
+                <strong>PNG 透明底會填上卡片深色底</strong>；上傳完<strong>要按 Save 才會寫入</strong>；
+                想調整壓縮強度就改 <code class="inline">admin.html</code> 裡的
+                <code class="inline">MAX_EDGE</code> 與 <code class="inline">JPEG_QUALITY</code>。
+                圖片是選填的 —— 沒填的卡片就維持原本的純文字版面。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 6. 分類設定 ═══ -->
+    <section>
+        <h2><span class="num">06</span>分類設定</h2>
+        <p class="section-desc">
+            分類不是寫死的。點導覽列的 <strong>▣ Categories</strong>（或表單裡的「管理分類…」）就能增減、
+            改名、換色、調整順序。設定會跟著資料一起匯出，作品集頁面的篩選按鈕由它產生。
+        </p>
+
+        <div class="grid-3">
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.3rem;">新增</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);">
+                    輸入名稱、選顏色、按 Add。代碼（<code class="inline">value</code>）會自動從名稱產生，
+                    中文也可以。
+                </div>
+            </div>
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.3rem;">刪除</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);">
+                    沒有專案在用就直接刪。<strong>有專案在用會先要求你選一個改分到哪裡</strong>，
+                    不會讓專案變成孤兒。
+                </div>
+            </div>
+            <div class="card">
+                <div style="font-weight:500;margin-bottom:0.3rem;">排序</div>
+                <div style="font-size:0.875rem;color:var(--text-secondary);">
+                    ▲▼ 調整順序，作品集頁面的篩選按鈕就照這個順序排。
+                </div>
+            </div>
+        </div>
+
+        <div class="callout info">
+            <span class="ci">✎</span>
+            <span>
+                <strong>名稱可以改，代碼不行。</strong>
+                專案是靠 <code class="inline">value</code>（代碼）對應分類的，所以它建立後就固定住 ——
+                這樣就不會出現「改個名字結果全部專案失去分類」的狀況。
+                顯示名稱 <code class="inline">label</code> 隨時可以改，改了作品集頁的按鈕文字就跟著變。
+                <br><br>
+                側欄的分頁標籤用的是代碼（<code class="inline">Automation</code>），
+                下拉選單與標籤用的是完整名稱（<code class="inline">Automation &amp; Orchestration</code>），
+                所以代碼取短一點、名稱取完整一點，排版最好看。
+            </span>
+        </div>
+
+        <div class="callout">
+            <span class="ci">⚠</span>
+            <span>
+                <strong>匯入舊檔可能出現「未定義分類」。</strong>
+                如果 JSON 裡的 <code class="inline">category</code> 值不在分類清單中，後台會用<strong>灰色虛線標籤</strong>
+                標示出來，Categories 按鈕上也會出現琥珀色的 <code class="inline">+N!</code> 提示。
+                打開分類設定，點一下就能把它補進清單。在補上之前資料不會被改動，也不會遺失。
+                <br><br>
+                作品集頁面則更寬容：<strong>它會把資料裡出現過的分類全部列成按鈕</strong>，
+                就算沒有定義也不會有點不到的卡片。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 7. 直接開啟 ═══ -->
+    <section>
+        <h2><span class="num">07</span>直接開啟</h2>
+        <p class="section-desc">以下連結為相對路徑，把本檔放在專案資料夾內就能點。</p>
+
+        <div class="grid-2">
+            <a class="launch card hover" href="admin.html">
+                <span class="arrow">→</span>
+                <span class="icon">⚙</span>
+                <span class="name">編輯後台</span>
+                <span class="why">建立 / 修改 / 刪除專案，匯入匯出 JSON</span>
+                <span class="file">admin.html · file:// 也能用</span>
+            </a>
+            <a class="launch card hover" href="index.html">
+                <span class="arrow">→</span>
+                <span class="icon">◈</span>
+                <span class="name">作品集頁面</span>
+                <span class="why">對外展示的成品頁，含分類篩選</span>
+                <span class="file">index.html · 有 projects.js 就能雙擊</span>
+            </a>
+            <a class="launch card hover" href="example.html">
+                <span class="arrow">→</span>
+                <span class="icon">◎</span>
+                <span class="name">樣式參考</span>
+                <span class="why">設計語言的原始參考稿</span>
+                <span class="file">example.html</span>
+            </a>
+            <a class="launch card hover" href="README.md">
+                <span class="arrow">→</span>
+                <span class="icon">▤</span>
+                <span class="name">完整文件</span>
+                <span class="why">功能表、資料結構、技術棧說明</span>
+                <span class="file">README.md</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══ 8. 資料結構 ═══ -->
+    <section>
+        <h2><span class="num">08</span>資料結構</h2>
+        <p class="section-desc">
+            <code class="inline">projects.json</code> 最外層是一個物件，裝著分類設定與專案陣列兩份東西。
+        </p>
+
+        <div class="code" data-copy='{&#10;  "categories": [&#10;    { "value": "automation", "label": "Automation & Orchestration", "color": "#7dd3fc" }&#10;  ],&#10;  "projects": [&#10;    { "category": "automation", "title": "..." }&#10;  ]&#10;}'>{
+  <span class="k">"categories"</span>: [
+    { <span class="k">"value"</span>: "automation", <span class="k">"label"</span>: "Automation &amp; Orchestration", <span class="k">"color"</span>: "#7dd3fc" },
+    …
+  ],
+  <span class="k">"projects"</span>: [ … ]
+}<button class="copy">Copy</button></div>
+
+        <div class="callout info">
+            <span class="ci">◆</span>
+            <span>
+                <strong>舊格式仍然通。</strong>
+                純陣列的 <code class="inline">projects.json</code>（沒有外層包裝）照樣讀得進去 ——
+                此時分類會自動從專案的 <code class="inline">category</code> 值推導出來，
+                名稱直接用代碼轉成標題大寫。<code class="inline">projects.js</code> 對應的是兩個全域變數：
+                <code class="inline">window.CATEGORIES</code> 與 <code class="inline">window.PROJECTS</code>，
+                後者單獨存在也能用。
+            </span>
+        </div>
+
+        <p class="section-desc" style="margin-top:2rem;">
+            <strong style="color:var(--text-primary);">projects[] 的每個物件</strong> —— 八個欄位、全部扁平、沒有巢狀。
+        </p>
+
+        <div class="code" data-copy='{&#10;  "category": "automation",&#10;  "metric": "-85%",&#10;  "metricLabel": "Manual Workload",&#10;  "title": "Autonomous Workflow System",&#10;  "link": "https://example.com",&#10;  "desc": "Project description here.",&#10;  "image": "images/cover.jpg",&#10;  "tags": ["GPT-4o API", "Zapier Agents"]&#10;}'>{
+  <span class="k">"category"</span>:    "automation",
+  <span class="k">"metric"</span>:      "-85%",
+  <span class="k">"metricLabel"</span>: "Manual Workload",
+  <span class="k">"title"</span>:       "Autonomous Workflow System",
+  <span class="k">"link"</span>:        "https://example.com",
+  <span class="k">"desc"</span>:        "Project description here.",
+  <span class="k">"image"</span>:       "images/cover.jpg",   <span class="c">// 或 "data:image/jpeg;base64,..."</span>
+  <span class="k">"tags"</span>:        ["GPT-4o API", "Zapier Agents"]
+}<button class="copy">Copy</button></div>
+
+        <div class="table-wrap" style="margin-top:1.25rem;">
+            <table>
+                <thead>
+                    <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field">category</td><td>string</td>
+                        <td>
+                            對應 <code class="inline">categories[].value</code> 之一，決定卡片歸屬哪個篩選按鈕。
+                            分類可在後台自由增減 —— 預設是 <code class="inline">automation</code> ·
+                            <code class="inline">marketing</code> · <code class="inline">enterprise</code> ·
+                            <code class="inline">engineering</code>，但這只是預設值而非固定選項。
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="field">metric</td><td>string</td>
+                        <td>卡片上最大的那個數字，例：<code class="inline">-85%</code>、<code class="inline">3x</code>、<code class="inline">3 Min</code>。刻意用字串，方便帶符號與單位。</td>
+                    </tr>
+                    <tr>
+                        <td class="field">metricLabel</td><td>string</td>
+                        <td>數字旁的小標，例：<code class="inline">Manual Workload</code>、<code class="inline">CPA</code>。</td>
+                    </tr>
+                    <tr><td class="field">title</td><td>string</td><td>專案標題。</td></tr>
+                    <tr>
+                        <td class="field">link</td><td>string</td>
+                        <td>整張卡片的連結網址；填 <code class="inline">#</code> 代表暫無連結。</td>
+                    </tr>
+                    <tr><td class="field">desc</td><td>string</td><td>一到兩句成果敘述。</td></tr>
+                    <tr>
+                        <td class="field">image</td><td>string</td>
+                        <td>
+                            <strong>選填</strong>。封面圖，卡片頂端 16:9 滿版顯示。可以是
+                            <code class="inline">data:image/…</code> base64、完整網址，或
+                            <code class="inline">images/cover.jpg</code> 這樣的相對路徑。
+                            留空或載入失敗時，卡片自動退回純文字版面。
+                        </td>
+                    </tr>
+                    <tr><td class="field">tags</td><td>string[]</td><td>技術／工具標籤，顯示為卡片底部藍色小標。</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="section-desc" style="margin-top:2rem;">
+            <strong style="color:var(--text-primary);">categories[] 的每個物件</strong> —— 三個欄位。
+        </p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>欄位</th><th>型別</th><th>說明</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="field">value</td><td>string</td>
+                        <td>
+                            代碼，專案的 <code class="inline">category</code> 就是對應到這裡。
+                            由名稱自動產生，<strong>建立後不可修改</strong>。
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="field">label</td><td>string</td>
+                        <td>顯示名稱，作品集頁的篩選按鈕文字。隨時可改。</td>
+                    </tr>
+                    <tr>
+                        <td class="field">color</td><td>string</td>
+                        <td>
+                            十六進位色碼，例 <code class="inline">#7dd3fc</code>。
+                            用於後台的分類標籤（底色與邊框由它自動推導出透明度變化）。
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:1rem;">
+            陣列順序就是作品集頁篩選按鈕的順序。
+        </p>
+
+        <div class="callout info">
+            <span class="ci">✎</span>
+            <span>
+                想改分類的名稱或顏色，要動兩個地方：<code class="inline">admin.html</code> 的
+                <code class="inline">categoryMeta</code> / <code class="inline">filterOptions</code>，
+                以及 <code class="inline">index.html</code> 上方的篩選按鈕
+                <code class="inline">data-filter</code>。兩邊的 key 必須一致。
+            </span>
+        </div>
+    </section>
+
+    <!-- ═══ 9. 檔案結構 ═══ -->
+    <section>
+        <h2><span class="num">09</span>檔案結構</h2>
+        <p class="section-desc">全部平放在一層，沒有 node_modules、沒有設定檔。</p>
+
+        <div class="code" data-copy="0.product_menu/">0.product_menu/
+├── <span class="k">quick_start.html</span>  <span class="c">本頁 — 上手指南</span>
+├── <span class="k">admin.html</span>        <span class="c">編輯後台（Vue 3 + Tailwind CDN）</span>
+├── <span class="k">index.html</span>    <span class="c">對外作品集頁（原生 JS）</span>
+├── <span class="k">projects.js</span>       <span class="c">同一份資料的 JS 版 — 雙擊開檔靠它</span>
+├── <span class="k">projects.json</span>     <span class="c">資料本體 — 由後台匯出</span>
+├── <span class="k">images/</span>           <span class="c">選用 — 只有走相對路徑模式才需要</span>
+├── <span class="k">example.html</span>      <span class="c">視覺樣式參考稿</span>
+├── <span class="k">input.txt</span>         <span class="c">最初的需求描述</span>
+└── <span class="k">README.md</span>         <span class="c">完整文件</span><button class="copy">Copy</button></div>
+    </section>
+
+    <!-- ═══ 10. 疑難排解 ═══ -->
+    <section>
+        <h2><span class="num">10</span>疑難排解</h2>
+        <p class="section-desc">會踩到的坑基本就這幾個。</p>
+
+        <details>
+            <summary>index.html 顯示黃色錯誤橫幅，讀不到資料</summary>
+            <div class="answer">
+                橫幅現在會直接講出是哪一種原因，照著做就好。三種常見情況：
+                <br><br>
+                <strong>1. 用 file:// 雙擊但同層沒有 projects.js</strong> —— 到後台按
+                <strong>Export JS</strong>，把 <code class="inline">projects.js</code> 放到
+                <code class="inline">index.html</code> 旁邊。
+                <br>
+                <strong>2. HTTP 供應但 404</strong> —— 檔名被改過或不在同一層。本頁預期的名字就是
+                <code class="inline">projects.json</code>，改成別的名字它不會自己去找。
+                <br>
+                <strong>3. JSON 語法錯誤</strong> —— 陣列尾端多一個逗號、或檔案在寫入時被截斷。
+                重新 Export 一份即可。若尾端被填了 NULL 位元組（同步工具或防毒中斷寫入造成），
+                本頁會自動略過那段並照常顯示，只給一個提醒。
+            </div>
+        </details>
+
+        <details>
+            <summary>後台改了東西，但作品集頁沒變</summary>
+            <div class="answer">
+                後台的即時儲存只寫入瀏覽器 localStorage，<strong>不會自動寫檔</strong>。
+                必須按 <strong>Export JS</strong>（或 <strong>Export JSON</strong>）下載，再把檔案覆蓋回專案資料夾 ——
+                純前端頁面沒有寫入本機檔案的權限，這一步只能手動。
+                <strong>兩份都在用的話，兩份都要重新匯出</strong>，否則
+                <code class="inline">projects.js</code> 會蓋掉 <code class="inline">projects.json</code> 的內容
+                （前者優先），你會以為改的東西沒生效。
+            </div>
+        </details>
+
+        <details>
+            <summary>作品集頁的篩選按鈕跟後台的分類不一樣</summary>
+            <div class="answer">
+                分類設定是跟著資料檔走的，所以<strong>改完分類要重新 Export</strong>（JS 或 JSON）
+                並覆蓋舊檔，作品集頁才會看到新設定。
+                <br><br>
+                另外作品集頁會把「資料裡出現過但沒定義」的分類也列成按鈕（名稱直接用代碼），
+                所以如果看到多出來的按鈕，通常是某些專案還帶著舊分類值 ——
+                打開後台的 Categories 會看到琥珀色提示，點一下就能補進清單，或把那些專案改分到現有分類。
+            </div>
+        </details>
+
+        <details>
+            <summary>某個分類的標籤變成灰色虛線，寫著「未定義」</summary>
+            <div class="answer">
+                表示這個專案的 <code class="inline">category</code> 值不在分類清單裡 ——
+                通常是匯入了舊檔，或分類設定的 localStorage 被清掉了。
+                資料沒有損壞，只是找不到對應的名稱與顏色。
+                打開 <strong>▣ Categories</strong>，最下方會列出這些值，點一下就能加進清單；
+                或直接在專案表單的下拉選單改成現有分類。
+            </div>
+        </details>
+
+        <details>
+            <summary>可以把分類代碼改成別的名字嗎？</summary>
+            <div class="answer">
+                不行，這是刻意的限制。專案是靠代碼（<code class="inline">value</code>）對應分類的，
+                如果代碼可以改，改完所有用到它的專案就會瞬間全部失去分類 ——
+                所以代碼建立後固定住，<strong>顯示名稱則隨時可以改</strong>，這已經涵蓋了實際需求。
+                真的要換代碼，就新增一個分類、把專案改分過去、再刪掉舊的（刪除時會自動幫你改分）。
+            </div>
+        </details>
+
+        <details>
+            <summary>卡片上的圖片沒出現</summary>
+            <div class="answer">
+                作品集頁面對讀不到的圖片是「靜默移除」—— 卡片會退回純文字版面，不會出現破圖。
+                所以看不到圖通常是路徑問題：相對路徑（<code class="inline">images/cover.jpg</code>）
+                必須以 HTTP 供應、且資料夾要跟 HTML 同層；外部網址則要檢查對方是否允許被引用。
+                最保險的做法是用後台上傳成內嵌 base64，路徑問題就整個消失。
+                另外別忘了上傳後<strong>要按 Save</strong>、再重新 <strong>Export JSON</strong>。
+            </div>
+        </details>
+
+        <details>
+            <summary>導覽列的量表變成琥珀色 / 跳出「localStorage 已滿」</summary>
+            <div class="answer">
+                內嵌圖片累積超過瀏覽器約 5 MB 的配額了。此時後台會退一步只存文字，
+                並提醒你立刻 <strong>Export JSON</strong> —— 匯出的檔案是完整的（含所有圖片），
+                所以照做就不會丟資料，但<strong>在你匯出之前不要關掉頁面</strong>。
+                長期解法有三個：減少張數、把大圖改走外部連結／相對路徑，
+                或把 <code class="inline">admin.html</code> 的
+                <code class="inline">MAX_EDGE</code> 調小（例如 1200）、
+                <code class="inline">JPEG_QUALITY</code> 降到 0.7 左右。
+            </div>
+        </details>
+
+        <details>
+            <summary>圖片顏色怪怪的 / GIF 不會動了</summary>
+            <div class="answer">
+                上傳壓縮一律輸出 JPEG：動態 GIF 只會留下第一格，PNG 的透明區域則會被填上卡片底色
+                <code class="inline">#0f172a</code>（刻意選的，貼在卡片上看不出接縫）。
+                需要保留透明或動畫，就別走上傳，改用外部連結／相對路徑指向原始檔。
+            </div>
+        </details>
+
+        <details>
+            <summary>資料不見了 / 想重來</summary>
+            <div class="answer">
+                localStorage 綁定「瀏覽器 + 網域」：換瀏覽器、切換無痕模式、或從 <code class="inline">file://</code>
+                改成 <code class="inline">localhost</code>，看到的都是不同的儲存空間。
+                真的要清空，開 DevTools → Application → Local Storage，刪掉
+                <code class="inline">projects_admin_data</code>；或直接 Import 一份 JSON 覆蓋掉。
+                <strong>重要編輯完成後就 Export 一份留底。</strong>
+            </div>
+        </details>
+
+        <details>
+            <summary>頁面樣式全跑掉、只剩白底黑字</summary>
+            <div class="answer">
+                Vue 與 Tailwind 都走 CDN，需要連得上網。離線環境或公司防火牆擋 unpkg／jsdelivr 時就會這樣。
+                長期離線使用的話，把兩個 CDN 檔案下載到本機再改成相對路徑引用。
+            </div>
+        </details>
+
+        <details>
+            <summary>想換掉標題文案與品牌顏色</summary>
+            <div class="answer">
+                文案：<code class="inline">index.html</code> 的 <code class="inline">&lt;header&gt;</code> 區塊（h1 與 subtitle）。
+                顏色：每個 HTML 最上方 <code class="inline">:root</code> 的 CSS 變數，主色改
+                <code class="inline">--accent</code> 與 <code class="inline">--accent-light</code> 即可整頁換色。
+            </div>
+        </details>
+
+        <details>
+            <summary>可以直接部署到 GitHub Pages 嗎？</summary>
+            <div class="answer">
+                可以，這是純靜態站台。整個資料夾推上 repo、開啟 Pages 即可；
+                <code class="inline">index.html</code> 在 Pages 上是 HTTPS 供應，<code class="inline">fetch</code> 可正常運作。
+                建議把它改名成 <code class="inline">index.html</code> 當首頁，而 <code class="inline">admin.html</code> 留在本機使用即可。
+            </div>
+        </details>
+    </section>
+
+    <footer>
+        <span>Portfolio Manager — AI Commercial Portfolio Generator</span>
+        <span>Vue 3 · Tailwind CSS · Zero Build · MIT</span>
+    </footer>
+</div>
+
+<script>
+    // ── 複製按鈕 ──
+    document.querySelectorAll('.code .copy').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const block = btn.closest('.code');
+            // data-copy 優先；否則取程式碼區塊的純文字（去掉按鈕本身）
+            let text = block.getAttribute('data-copy');
+            if (text === null) {
+                const clone = block.cloneNode(true);
+                clone.querySelector('.copy')?.remove();
+                text = clone.textContent.trim();
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const old = btn.textContent;
+                btn.textContent = 'Copied';
+                btn.classList.add('done');
+                setTimeout(() => { btn.textContent = old; btn.classList.remove('done'); }, 1400);
+            }).catch(() => {
+                btn.textContent = 'Failed';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+            });
+        });
+    });
+
+    // ── 環境自我診斷：告訴使用者現在這樣開檔能不能跑 portfolio ──
+    // script 標籤不受 file:// 的 fetch 限制，所以連 file:// 也能真的探測 projects.js
+    function probeProjectsJs() {
+        return new Promise(resolve => {
+            const s = document.createElement('script');
+            s.src = 'projects.js';
+            s.onload = () => resolve(Array.isArray(window.PROJECTS) ? window.PROJECTS.length : -1);
+            s.onerror = () => resolve(null);      // 檔案不存在
+            document.head.appendChild(s);
+        });
+    }
+
+    (async function checkEnv() {
+        const banner = document.getElementById('env');
+        const msg = document.getElementById('env-msg');
+        const jsCount = await probeProjectsJs();
+
+        if (location.protocol === 'file:') {
+            if (jsCount > 0) {
+                banner.className = 'show ok';
+                msg.innerHTML = '可以直接雙擊使用：偵測到同層的 <strong>projects.js</strong>（' + jsCount +
+                                ' 筆專案），<code>index.html</code> 與 <code>admin.html</code> 都不需要伺服器。';
+            } else if (jsCount === null) {
+                banner.className = 'show warn';
+                msg.innerHTML = '你正在用 <code>file://</code> 開啟本頁，同層<strong>找不到 projects.js</strong>。' +
+                                '<code>admin.html</code> 可以正常使用，但 <code>index.html</code> 會讀不到資料 —— ' +
+                                '到後台按 <strong>Export JS</strong> 產生 <code>projects.js</code>（見第 3 節），或啟動第 2 節的伺服器。';
+            } else {
+                banner.className = 'show warn';
+                msg.innerHTML = '同層的 <code>projects.js</code> 載入了，但裡面沒有有效的 <code>window.PROJECTS</code> 陣列。' +
+                                '請從 <code>admin.html</code> 重新按 <strong>Export JS</strong> 匯出。';
+            }
+            return;
+        }
+
+        // HTTP(S)：實測 projects.json 抓不抓得到
+        fetch('projects.json', { cache: 'no-store' })
+            .then(async r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return JSON.parse((await r.text()).replace(/\0+$/, ''));
+            })
+            .then(data => {
+                const n = Array.isArray(data) ? data.length : 0;
+                const jsNote = jsCount > 0
+                    ? '　另外偵測到 <strong>projects.js</strong>（' + jsCount + ' 筆）—— 它的優先度高於 JSON，兩份記得同步。'
+                    : '';
+                banner.className = 'show ok';
+                msg.innerHTML = '環境檢查通過：以 <code>' + location.protocol +
+                                '</code> 供應中，已讀到 <strong>projects.json</strong>（' + n + ' 筆專案）。' + jsNote;
+            })
+            .catch(err => {
+                if (jsCount > 0) {
+                    banner.className = 'show ok';
+                    msg.innerHTML = '讀取 <code>projects.json</code> 失敗（' + err.message +
+                                    '），但同層有 <strong>projects.js</strong>（' + jsCount +
+                                    ' 筆專案）可用，<code>index.html</code> 仍能正常顯示。';
+                    return;
+                }
+                banner.className = 'show warn';
+                msg.innerHTML = '已用 HTTP 供應，但讀取 <code>projects.json</code> 失敗（' + err.message +
+                                '）。請確認該檔與本頁同層、且為合法的 JSON 陣列 —— 詳見第 10 節。';
+            });
+    })();
+</script>
+</body>
+</html>

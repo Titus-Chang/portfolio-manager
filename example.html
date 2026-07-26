@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise AI Solutions | 2026 Commercial Portfolio</title>
+    <style>
+        :root {
+            /* 科技藍專屬色彩變數 */
+            --bg-color: #020617;           /* 極深科技藍背景 */
+            --surface-color: #0f172a;      /* 卡片底色 */
+            --surface-hover: #1e293b;      /* 卡片懸浮底色 */
+            --border-color: rgba(56, 189, 248, 0.15); /* 靜態微藍邊框 */
+            --border-hover: rgba(56, 189, 248, 0.6);  /* 懸浮高亮藍邊框 */
+            --text-primary: #f8fafc;       /* 主標題白 */
+            --text-secondary: #94a3b8;     /* 內文灰藍 */
+            --tag-bg: rgba(14, 165, 233, 0.15); /* 標籤底色 */
+            --tag-text: #7dd3fc;           /* 標籤亮藍文字 */
+            --accent-glow: rgba(56, 189, 248, 0.15); /* 游標追蹤光暈 */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 4rem 2rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            /* 標題套用白到科技藍的漸層 */
+            background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--surface-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #0ea5e9; /* 亮藍色背景 */
+            color: #ffffff;
+            border-color: #0ea5e9;
+            font-weight: 500;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); /* 按鈕發光特效 */
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 游標追蹤微光特效 - 換成藍光 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 100%;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), var(--accent-glow), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(2, 6, 23, 0.8), 0 0 20px rgba(56, 189, 248, 0.1);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #38bdf8; /* 高亮科技藍數據 */
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); /* 數據微微發光 */
+        }
+
+        .metric span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: none;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: auto;
+        }
+
+        .tag {
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-size: 0.75rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+        }
+        
+        .hide {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+            .card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AI Commercial Solutions & Integrations</h1>
+            <p class="subtitle">Architecting scalable, enterprise-grade AI pipelines driving measurable business outcomes in 2026.</p>
+        </header>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All Projects</button>
+            <button class="filter-btn" data-filter="automation">Automation & Orchestration</button>
+            <button class="filter-btn" data-filter="marketing">Growth & Marketing</button>
+            <button class="filter-btn" data-filter="enterprise">Enterprise BI</button>
+            <button class="filter-btn" data-filter="engineering">Engineering Enablement</button>
+        </div>
+
+        <main class="grid" id="grid">
+            
+            <!-- Project 1 -->
+            <a href="#" class="card" data-category="automation">
+                <div class="card-content">
+                    <div class="metric">-85% <span>Manual Workload</span></div>
+                    <div class="card-title">Autonomous Workflow System</div>
+                    <div class="card-desc">Architected a multi-step autonomous agent pipeline handling data entry, report generation, and cross-department routing.</div>
+                    <div class="tags">
+                        <span class="tag">Zapier Agents</span>
+                        <span class="tag">GPT-4o API</span>
+                        <span class="tag">Enterprise Scale</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 2 -->
+            <a href="#" class="card" data-category="engineering">
+                <div class="card-content">
+                    <div class="metric">2.5x <span>Deployment Speed</span></div>
+                    <div class="card-title">Agentic Codebase Modernization</div>
+                    <div class="card-desc">Led a massive legacy code migration initiative utilizing agent-first IDE capabilities to automatically refactor components and validate full-stack logic.</div>
+                    <div class="tags">
+                        <span class="tag">Google Antigravity</span>
+                        <span class="tag">Cursor AI</span>
+                        <span class="tag">Gemini 1.5 Pro</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 3 -->
+            <a href="#" class="card" data-category="marketing">
+                <div class="card-content">
+                    <div class="metric">+310% <span>Organic Traffic</span></div>
+                    <div class="card-title">Semantic SEO Engine</div>
+                    <div class="card-desc">Deployed an AI-driven content generation strategy optimized for Google AI Overviews and entity-driven knowledge graphs.</div>
+                    <div class="tags">
+                        <span class="tag">Surfer SEO</span>
+                        <span class="tag">KIME</span>
+                        <span class="tag">Claude 3.5</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 4 -->
+            <a href="#" class="card" data-category="automation">
+                <div class="card-content">
+                    <div class="metric">3 Min <span>Resolution Time</span></div>
+                    <div class="card-title">Multimodal Customer Intelligence</div>
+                    <div class="card-desc">Integrated long-context reasoning models to process complex customer support tickets, analyze uploaded documents, and resolve queries autonomously.</div>
+                    <div class="tags">
+                        <span class="tag">Intercom Fin</span>
+                        <span class="tag">Claude 3.5 Sonnet</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 5 -->
+            <a href="#" class="card" data-category="marketing">
+                <div class="card-content">
+                    <div class="metric">-40% <span>CPA</span></div>
+                    <div class="card-title">Dynamic Creative Studio Pipeline</div>
+                    <div class="card-desc">Established a high-volume visual content pipeline for A/B testing ad creatives, generating production-ready static and video assets at scale.</div>
+                    <div class="tags">
+                        <span class="tag">Midjourney v6</span>
+                        <span class="tag">Runway Gen-3</span>
+                        <span class="tag">Canva Magic Studio</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Project 6 -->
+            <a href="#" class="card" data-category="enterprise">
+                <div class="card-content">
+                    <div class="metric">100% <span>Data Democratization</span></div>
+                    <div class="card-title">Natural Language BI Dashboard</div>
+                    <div class="card-desc">Implemented a natural language querying interface over massive company datasets, enabling C-level executives to generate dynamic reports instantly.</div>
+                    <div class="tags">
+                        <span class="tag">Power BI Copilot</span>
+                        <span class="tag">Microsoft 365 Copilot</span>
+                        <span class="tag">Azure AI</span>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- Project 7 -->
+            <a href="#" class="card" data-category="marketing">
+                <div class="card-content">
+                    <div class="metric">3x <span>Conversion Rate</span></div>
+                    <div class="card-title">Predictive Lead Scoring Engine</div>
+                    <div class="card-desc">Revamped CRM workflows with AI-assisted predictive analytics to identify high-intent prospects and automate personalized outreach sequences.</div>
+                    <div class="tags">
+                        <span class="tag">HubSpot AI</span>
+                        <span class="tag">Zapier AI Actions</span>
+                    </div>
+                </div>
+            </a>
+
+        </main>
+    </div>
+
+    <script>
+        // 分類過濾邏輯
+        const buttons = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.card');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const filter = button.getAttribute('data-filter');
+
+                cards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.classList.remove('hide');
+                    } else {
+                        card.classList.add('hide');
+                    }
+                });
+            });
+        });
+
+        // 卡片高級聚光燈游標追蹤特效
+        document.getElementById('grid').onmousemove = e => {
+            for(const card of document.getElementsByClassName("card")) {
+                const rect = card.getBoundingClientRect(),
+                      x = e.clientX - rect.left,
+                      y = e.clientY - rect.top;
+
+                card.style.setProperty("--mouse-x", `${x}px`);
+                card.style.setProperty("--mouse-y", `${y}px`);
+            }
+        }
+    </script>
+</body>
+</html>

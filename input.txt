@@ -1,0 +1,17 @@
+請撰寫一個單檔 HTML（使用 Vue 3 + Tailwind CSS CDN，無建置步驟），作為 `projects.json` 的本地管理後台。
+
+**1. 資料結構：**
+- `category` (Select: automation, marketing, enterprise, engineering)
+- `metric`, `metricLabel`, `title`, `link` (String)
+- `desc` (Textarea)
+- `tags` (Array: 需有動態新增/移除的 UI)
+
+**2. 核心功能：**
+- 視覺化的 CRUD 介面（列表預覽 + 編輯表單）。
+- 狀態即時存入 `localStorage` 防遺失。
+- 具備「Import JSON」與「Export JSON」按鈕，實作檔案讀寫邏輯。
+
+**3. UI 風格：**
+深色模式（Dark mode）、科技藍（Tech blue）點綴，現代簡潔的高質感後台設計。
+
+請直接輸出完整 HTML 原始碼。

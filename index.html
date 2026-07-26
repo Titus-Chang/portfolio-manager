@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise AI Solutions | 2026 Commercial Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 科技藍專屬色彩變數 */
+            --bg-color: #020617;           /* 極深科技藍背景 */
+            --surface-color: #0f172a;      /* 卡片底色 */
+            --surface-hover: #1e293b;      /* 卡片懸浮底色 */
+            --border-color: rgba(56, 189, 248, 0.15); /* 靜態微藍邊框 */
+            --border-hover: rgba(56, 189, 248, 0.6);  /* 懸浮高亮藍邊框 */
+            --text-primary: #f8fafc;       /* 主標題白 */
+            --text-secondary: #94a3b8;     /* 內文灰藍 */
+            --tag-bg: rgba(14, 165, 233, 0.15); /* 標籤底色 */
+            --tag-text: #7dd3fc;           /* 標籤亮藍文字 */
+            --accent-glow: rgba(56, 189, 248, 0.15); /* 游標追蹤光暈 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 4rem 2rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            background: linear-gradient(180deg, #ffffff 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .filters {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--surface-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #0ea5e9;
+            color: #ffffff;
+            border-color: #0ea5e9;
+            font-weight: 500;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 游標追蹤微光特效 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 100%;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), var(--accent-glow), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(2, 6, 23, 0.8), 0 0 20px rgba(56, 189, 248, 0.1);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 封面圖：滿版置頂，用負邊距抵銷卡片內距 */
+        .card-media {
+            position: relative;
+            margin: -2.5rem -2.5rem 1.75rem;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: #0b1120;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .card:hover .card-media img {
+            transform: scale(1.05);
+        }
+
+        /* 圖片下緣淡入卡片底色，讓數據不會被圖搶走視線 */
+        .card-media::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(2,6,23,0) 55%, rgba(15,23,42,0.85) 100%);
+            pointer-events: none;
+        }
+
+        .metric {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #38bdf8;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        .metric span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: none;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: auto;
+        }
+
+        .tag {
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-size: 0.75rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(56, 189, 248, 0.2);
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error / fallback */
+        .error-banner {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fde68a;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        /* Card entrance animation */
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card { animation: cardIn 0.4s ease both; }
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.10s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+        .card:nth-child(4) { animation-delay: 0.20s; }
+        .card:nth-child(5) { animation-delay: 0.25s; }
+        .card:nth-child(6) { animation-delay: 0.30s; }
+        .card:nth-child(7) { animation-delay: 0.35s; }
+        .card:nth-child(8) { animation-delay: 0.40s; }
+        .card:nth-child(9) { animation-delay: 0.45s; }
+        .card:nth-child(10) { animation-delay: 0.50s; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+            .card { padding: 1.5rem; }
+            .card-media { margin: -1.5rem -1.5rem 1.25rem; }
+            body { padding: 2rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AI Commercial Solutions & Integrations</h1>
+            <p class="subtitle">Architecting scalable, enterprise-grade AI pipelines driving measurable business outcomes in 2026.</p>
+        </header>
+
+        <div id="error-banner" class="error-banner"></div>
+
+        <!-- 篩選按鈕由資料中的分類設定產生，不寫死 -->
+        <div class="filters" id="filters" style="display: none;"></div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading projects...</p>
+        </div>
+
+        <main class="grid" id="grid" style="display: none;"></main>
+    </div>
+
+    <!--
+        projects.js 定義 window.PROJECTS，是「雙擊直接開」的關鍵：
+        <script src> 不受 fetch 對 file:// 的限制，所以不需要本機伺服器。
+        檔案不存在也無妨 — 下面會自動退回 fetch('projects.json')。
+    -->
+    <script src="projects.js" onerror="window.__projectsJsMissing = true"></script>
+
+    <script>
+        // ====== Configuration ======
+        const JSON_FILE = 'projects.json';
+
+        // ====== Categories ======
+        // 分類清單來自資料（admin.html 匯出），舊檔沒有這段時就從專案內容推導出來，
+        // 這樣任何格式的資料都不會有「篩選按鈕點不到的卡片」。
+        function buildCategories(defined, projects) {
+            const list = [];
+            const seen = new Set();
+
+            (Array.isArray(defined) ? defined : []).forEach(c => {
+                const value = typeof c === 'string' ? c : c?.value;
+                if (!value || seen.has(value)) return;
+                seen.add(value);
+                list.push({
+                    value,
+                    label: (typeof c === 'object' && c?.label) ? c.label : titleCase(value)
+                });
+            });
+
+            // 資料裡出現但沒被定義的分類，補到最後面
+            projects.forEach(p => {
+                const v = p.category;
+                if (v && !seen.has(v)) {
+                    seen.add(v);
+                    list.push({ value: v, label: titleCase(v) });
+                }
+            });
+
+            return list;
+        }
+
+        function titleCase(str) {
+            return String(str || '').replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function renderFilters(categories) {
+            const box = document.getElementById('filters');
+            box.innerHTML = '';
+
+            // 只有一種分類時篩選沒有意義，整排隱藏
+            if (categories.length < 2) {
+                box.style.display = 'none';
+                return;
+            }
+            box.style.display = 'flex';
+
+            const all = document.createElement('button');
+            all.className = 'filter-btn active';
+            all.setAttribute('data-filter', 'all');
+            all.textContent = 'All Projects';
+            box.appendChild(all);
+
+            categories.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.setAttribute('data-filter', c.value);
+                btn.textContent = c.label;
+                box.appendChild(btn);
+            });
+        }
+
+        // ====== Render ======
+        function renderCards(projects) {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+
+            grid.innerHTML = '';
+
+            projects.forEach(project => {
+                const card = document.createElement('a');
+                card.href = project.link || '#';
+                card.className = 'card';
+                card.setAttribute('data-category', project.category || '');
+                if (project.link) {
+                    card.target = '_blank';
+                    card.rel = 'noopener';
+                }
+
+                const tagsHtml = (project.tags || [])
+                    .map(tag => `<span class="tag">${escapeHtml(tag)}</span>`)
+                    .join('');
+
+                // 封面圖：接受 base64 內嵌、http(s) 網址或相對路徑；載入失敗就整塊移除
+                const imageSrc = safeImageSrc(project.image);
+                const mediaHtml = imageSrc
+                    ? `<div class="card-media">
+                           <img src="${escapeAttr(imageSrc)}" alt="${escapeAttr(project.title || 'Project cover')}"
+                                loading="lazy" decoding="async"
+                                onerror="this.closest('.card-media').remove()">
+                       </div>`
+                    : '';
+
+                card.innerHTML = `
+                    <div class="card-content">
+                        ${mediaHtml}
+                        <div class="metric">${escapeHtml(project.metric || '')} <span>${escapeHtml(project.metricLabel || '')}</span></div>
+                        <div class="card-title">${escapeHtml(project.title || 'Untitled')}</div>
+                        <div class="card-desc">${escapeHtml(project.desc || '')}</div>
+                        <div class="tags">${tagsHtml}</div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+
+            // Re-bind filter and mouse tracking
+            bindFilters();
+            bindMouseTracking();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // 屬性內容需連引號一起轉義，否則網址裡的 " 會跳出屬性
+        function escapeAttr(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // 只放行圖片可用的來源，擋掉 javascript: 之類的 scheme
+        function safeImageSrc(src) {
+            if (typeof src !== 'string') return '';
+            const value = src.trim();
+            if (!value) return '';
+            if (/^data:image\//i.test(value)) return value;
+            if (/^https?:\/\//i.test(value)) return value;
+            if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return '';  // 其他 scheme 一律拒絕
+            return value;                                        // 相對路徑
+        }
+
+        // ====== Filters ======
+        function bindFilters() {
+            const buttons = document.querySelectorAll('.filter-btn');
+            const cards = document.querySelectorAll('.card');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const filter = button.getAttribute('data-filter');
+                    cards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                            card.classList.remove('hide');
+                        } else {
+                            card.classList.add('hide');
+                        }
+                    });
+                });
+            });
+        }
+
+        // ====== Mouse Tracking Spotlight ======
+        function bindMouseTracking() {
+            const grid = document.getElementById('grid');
+            grid.onmousemove = e => {
+                for (const card of document.getElementsByClassName('card')) {
+                    const rect = card.getBoundingClientRect(),
+                          x = e.clientX - rect.left,
+                          y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                }
+            };
+        }
+
+        // ====== Show Error ======
+        function showError(msg) {
+            const banner = document.getElementById('error-banner');
+            banner.textContent = msg;
+            banner.style.display = 'block';
+        }
+
+        // ====== Load Data ======
+        function present(projects, definedCategories) {
+            renderFilters(buildCategories(definedCategories, projects));
+            renderCards(projects);
+        }
+
+        async function loadProjects() {
+            // 路徑一：projects.js 已經把資料掛在 window 上（雙擊 file:// 也能用）
+            if (Array.isArray(window.PROJECTS) && window.PROJECTS.length > 0) {
+                present(window.PROJECTS, window.CATEGORIES);
+                return;
+            }
+
+            // 路徑二：fetch projects.json（需要以 HTTP 供應）
+            try {
+                const response = await fetch(JSON_FILE);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                // 先取原始文字再自己 parse，才能處理尾端補零損毀的檔案
+                const text = await response.text();
+                const cleaned = text.replace(/\0+$/, '').trim();
+                if (cleaned.length !== text.trim().length) {
+                    console.warn('projects.json 尾端有 NULL 位元組，已自動忽略');
+                    showError(`${JSON_FILE} 的尾端有損毀的空白位元組，本頁已自動略過。建議從 admin.html 重新 Export 一份乾淨的檔案。`);
+                }
+
+                // 兩種格式都吃：舊的純陣列，和帶分類設定的 { categories, projects }
+                const parsed = JSON.parse(cleaned);
+                const projects = Array.isArray(parsed) ? parsed : parsed?.projects;
+                if (!Array.isArray(projects)) throw new Error('JSON 需要是陣列，或含 projects 陣列的物件');
+                if (projects.length === 0) throw new Error('沒有專案可以顯示');
+                present(projects, Array.isArray(parsed) ? null : parsed?.categories);
+            } catch (err) {
+                console.warn('Failed to load projects:', err);
+                showError(describeLoadFailure(err));
+                document.getElementById('loading').innerHTML = `
+                    <p style="color: var(--text-secondary);">No projects loaded.</p>
+                    <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;">
+                        用 <strong>admin.html</strong> 建立專案，按 <strong>Export JS</strong> 產生
+                        <strong>projects.js</strong>（雙擊即可看）或 <strong>Export JSON</strong> 產生
+                        <strong>projects.json</strong>（需 HTTP 供應）。
+                    </p>
+                `;
+            }
+        }
+
+        // 把三種失敗原因分開講，不要一律怪路徑
+        function describeLoadFailure(err) {
+            const isFile = location.protocol === 'file:';
+
+            if (isFile) {
+                return window.__projectsJsMissing
+                    ? `以 file:// 開啟時無法用 fetch 讀取 ${JSON_FILE}，而同層也找不到 projects.js。` +
+                      ` 請在 admin.html 按「Export JS」下載 projects.js 放到本檔旁邊，之後雙擊就能直接看；或改用 HTTP 供應。`
+                    : `projects.js 載入了，但裡面沒有有效的 window.PROJECTS 陣列。請從 admin.html 重新按「Export JS」匯出。`;
+            }
+            if (err instanceof SyntaxError) {
+                return `${JSON_FILE} 不是合法的 JSON（${err.message}）。檔案可能在寫入時被截斷 — 請從 admin.html 重新 Export 一份。`;
+            }
+            if (/HTTP 404/.test(err.message)) {
+                return `找不到 ${JSON_FILE}（HTTP 404）。請確認檔案就在本頁同一層，檔名沒有被改過。`;
+            }
+            return `無法載入 ${JSON_FILE}：${err.message}`;
+        }
+
+        // ====== Init ======
+        loadProjects();
+    </script>
+</body>
+</html>
